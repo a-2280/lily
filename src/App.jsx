@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Nav from './Nav'
 import Card from './Card'
+import gemStudio from './assets/L1430117.jpeg'
 
 
 function App() {
@@ -10,16 +11,11 @@ function App() {
     <div className='webpage'>
       <Nav />
       <div className='cards'>
-        <Card />
-        <Card />
-        <Card />
-        <Card />
-        <Card />
-        <Card />
-        <Card />
-        <Card />
-        <Card />
-        <Card />
+        <Card src={gemStudio} alt="Gem Studio" p="Gem Studio" />
+        <Card src={gemStudio} alt="Gem Studio" p="Gem Studio" />
+        <Card src={gemStudio} alt="Gem Studio" p="Gem Studio" />
+        <Card src={gemStudio} alt="Gem Studio" p="Gem Studio" />
+        <Card src={gemStudio} alt="Gem Studio" p="Gem Studio" />
       </div>
     </div>
   )

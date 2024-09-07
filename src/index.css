@@ -58,21 +58,32 @@ p, h1, h2, h3, h4, h5, h6 {
 /* CARDS */
 .cards {
   display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow: scroll;
   scrollbar-width: none;
 }
 
 .card {
-  flex: 0 0 auto;
-  padding: 1rem;
-  padding-right: 0;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: max-content;
+  padding: 1rem .5rem;
 }
 
-.cardImage {
+.card img {
   height: 55vh;
+  width: fit-content;
+  transition: transform .2s;
 }
 
-.card p {
-  padding-top: .3rem;
+.card:first-child {
+  padding-left: 1rem;
+}
+
+.card:last-child {
+  padding-right: 1rem;
+}
+
+.card img:hover {
+  transform: scale(.95);
 }

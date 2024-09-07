@@ -1,10 +1,8 @@
-import image from './assets/L1430117.jpeg'
-
-function Card() {
+function Card(props) {
     return(
         <div className='card'>
-            <img className="cardImage" src={image} alt="Gem Studio" />
-            <p>Gem Studio</p>
+            <img src={props.src} alt={props.alt} />
+            <p>{props.p}</p>
         </div>
     );
 }
