@@ -13,6 +13,7 @@
 body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow: hidden;
 }
 
 img, picture, video, canvas, svg {
@@ -33,6 +34,14 @@ p, h1, h2, h3, h4, h5, h6 {
 }
 
 
+.webpage {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+
 /* NAVIGATION BAR */
 
 .navbar {
@@ -43,4 +52,27 @@ p, h1, h2, h3, h4, h5, h6 {
 
 .blackwords {
   color: black;
+}
+
+
+/* CARDS */
+.cards {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.card {
+  flex: 0 0 auto;
+  padding: 1rem;
+  padding-right: 0;
+}
+
+.cardImage {
+  height: 55vh;
+}
+
+.card p {
+  padding-top: .3rem;
 }
