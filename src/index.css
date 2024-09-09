@@ -34,6 +34,16 @@ p, h1, h2, h3, h4, h5, h6 {
 }
 
 
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
 .webpage {
   height: 100vh;
   display: flex;
@@ -45,23 +55,20 @@ p, h1, h2, h3, h4, h5, h6 {
 /* NAVIGATION BAR */
 
 .navbar {
-  display: flex;
-  justify-content: space-between;
+  height: 45vh;
   padding: 1rem;
-}
-
-.navbar p {
   cursor: default;
 }
 
-.navbar .navButton {
-  cursor: pointer;
+.navbar-nav {
+  max-width: 100%;
+  display: flex;
+  justify-content: space-between;
 }
 
-.blackwords {
+.black-text {
   color: black;
 }
-
 
 /* CARDS */
 .cards {
@@ -97,7 +104,7 @@ p, h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* DROPDOWN */
+/* DROPDOWN 
 .dropdown {
   height: 45vh;
 }
@@ -126,4 +133,20 @@ p, h1, h2, h3, h4, h5, h6 {
 
 .projects ul {
   padding: 0 16px;
+} */
+
+.dropdown {
+  position: absolute;
+  top: 4rem;
 }
+
+.socials {
+  padding-top: 1rem;
+}
+
+.sub-projects {
+  padding-left: 1rem;
+}
+
+
+/* CSSTransitions */
