@@ -50,6 +50,14 @@ p, h1, h2, h3, h4, h5, h6 {
   padding: 1rem;
 }
 
+.navbar p {
+  cursor: default;
+}
+
+.navbar .navButton {
+  cursor: pointer;
+}
+
 .blackwords {
   color: black;
 }
@@ -60,6 +68,7 @@ p, h1, h2, h3, h4, h5, h6 {
   display: flex;
   overflow: scroll;
   scrollbar-width: none;
+  height: 55vh;
 }
 
 .card {
@@ -71,8 +80,7 @@ p, h1, h2, h3, h4, h5, h6 {
 }
 
 .card img {
-  height: 55vh;
-  width: fit-content;
+  height: calc(100% - 24px);
   transition: transform .2s;
 }
 
@@ -86,4 +94,36 @@ p, h1, h2, h3, h4, h5, h6 {
 
 .card img:hover {
   transform: scale(.95);
+}
+
+
+/* DROPDOWN */
+.dropdown {
+  height: 45vh;
+}
+
+.dropdown ul {
+  list-style: none;
+  padding: 16px;
+}
+
+.dropdown a {
+  text-decoration: none;
+}
+
+.background {
+  position: absolute;
+  left: 25%;
+  top: 20%;
+}
+
+.background p {
+  font-size: 3rem;
+  color: #C8C8C8;
+  cursor: default;
+  user-select: none;
+}
+
+.projects ul {
+  padding: 0 16px;
 }
