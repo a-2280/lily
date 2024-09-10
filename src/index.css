@@ -148,5 +148,24 @@ a {
   padding-left: 1rem;
 }
 
+.background {
+  z-index: -1;
+  position: absolute;
+  width: fit-content;
+  
+  top: 15%;
+  left: 0; 
+  right: 0; 
+  margin-inline: auto;
+}
+
+.background p {
+  color: #C8C8C8;
+  font-size: 3rem;
+}
+
+.projects-ul {
+  padding-left: 1rem;
+}
 
 /* CSSTransitions */
