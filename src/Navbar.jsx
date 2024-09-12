@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { act } from "react-dom/test-utils";
 import { CSSTransition } from 'react-transition-group';
 
 
@@ -11,7 +10,7 @@ function Navbar() {
         <div className='navbar-nav'> 
             <p>
                 <span className="black-text">Lily Ballif</span>
-                {!open && " is a photographer based in Utah, USA."}
+                {!open && <span className="nav-normal-text"> is a photographer based in Utah, USA.</span>}
             </p>
             <a href="#" onClick={() => setOpen(!open)}>
                 {open ? "Collapse" : "Menu"}

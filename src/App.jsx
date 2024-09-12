@@ -16,7 +16,7 @@ function App() {
       <Navbar />
       {openCarousel && <Carousel onClose={() => setOpenCarousel(false)} />}
       <div className='cards'>
-        <Card src={gemStudio} alt="Gem Studio" p="Gem Studio" onClick={() => setOpenCarousel(!openCarousel)} />
+        <Card src={gemStudio} alt="Gem Studio" p="Gem Studio" onClick={() => setOpenCarousel(!openCarousel)} disableHover={openCarousel} />
         <Card src={gemStudio} alt="Gem Studio" p="Gem Studio" />
         <Card src={gemStudio} alt="Gem Studio" p="Gem Studio" />
         <Card src={gemStudio} alt="Gem Studio" p="Gem Studio" />
