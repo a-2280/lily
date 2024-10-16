@@ -1,5 +1,0 @@
-RewriteEngine on
-RewriteCond %{HTTP_HOST} ^newapology.org$ [NC,OR]
-RewriteCond %{HTTP_HOST} ^lily.newapology.org$
-RewriteCond %{REQUEST_URI} !dist/
-RewriteRule (.*) /dist/$1 [L]

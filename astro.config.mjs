@@ -5,6 +5,8 @@ import react from '@astrojs/react';
 
 import tailwind from '@astrojs/tailwind';
 
+import netlify from '@astrojs/netlify';
+
 // https://astro.build/config
 export default defineConfig({
   integrations: [sanity({
@@ -14,4 +16,6 @@ export default defineConfig({
     apiVersion: '2024-10-15',
     studioBasePath: '/studio',
   }), react(), tailwind()],
+  output: 'server',
+  adapter: netlify(),
 });
