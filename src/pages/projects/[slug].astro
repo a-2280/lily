@@ -1,13 +1,15 @@
 ---
 import { loadQuery } from "../../sanity/lib/load-query";
 import Navbar from "../../components/Navbar";
-import '../../styles/global.css'
+import ImageCarousel from "../../components/ImageCarousel";
+import '../../styles/global.css';
+import Layout from "../../layouts/Layout.astro";
 
 export async function getStaticPaths() {
   const query = `*[_type == "projects"] { slug { current } }`;
-  const { data } = await loadQuery({ query });
+  const { data } = await loadQuery<{ slug: { current: string } }[]>({ query });
   
-  return data.map((project: any) => ({
+  return data.map((project) => ({
     params: { slug: project.slug.current },
   }));
 }
@@ -22,25 +24,36 @@ const query = `*[_type == "projects" && slug.current == "${slug}"][0]{
     }
   }
 }`;
-const { data: project } = await loadQuery({ query });
+const { data: project } = await loadQuery<{
+  title: string;
+  projectImages: { asset: { url: string } }[];
+}>({ query });
+
+const images = project.projectImages.map((image, index) => ({
+  title: `${project.title} - Image ${index + 1}`,
+  url: image.asset.url
+}));
 ---
 
-<div class="h-screen overflow-hidden flex flex-col justify-between">
-    <div>
-        <Navbar client:load />
-    </div>
-    <div class="pl-[1rem] pb-[1rem]">
-        {project.projectImages && (
-        <div class="flex overflow-scroll no-scroll-bar">
-            {project.projectImages.map((image: any) => (
-            <img src={image.asset.url} alt="Project image" class="h-[50vh] pr-[0.5rem]" />
-            ))}
-        </div>
-        )}
-
-        <h1>{project.title}</h1>
-    </div>
-</div>
+<Layout title={project.title}>
+  <Navbar client:load />
+  <div class="pl-[1rem] pb-[1rem]">
+      {project.projectImages && (
+      <div id="image-grid" class="flex overflow-scroll no-scroll-bar">
+          {project.projectImages.map((image, index) => (
+          <img 
+            src={image.asset.url} 
+            alt="Project image" 
+            class="h-[50vh] pr-[0.5rem] cursor-pointer" 
+            data-index={index}
+          />
+          ))}
+      </div>
+      )}
+      <p>{project.title}</p>
+  </div>
+  <ImageCarousel client:load images={images} />
+</Layout>
 
 <style>
     .no-scroll-bar {
@@ -50,3 +63,40 @@ const { data: project } = await loadQuery({ query });
         display: none;
     }
 </style>
+
+<script>
+    let isCarouselOpen = false;
+    let currentIndex = 0;
+
+    function openCarousel(index) {
+        isCarouselOpen = true;
+        currentIndex = index;
+        updateCarousel();
+    }
+
+    function closeCarousel() {
+        isCarouselOpen = false;
+        updateCarousel();
+    }
+
+    function updateCarousel() {
+        const event = new CustomEvent('updateCarousel', { 
+            detail: { isOpen: isCarouselOpen, index: currentIndex } 
+        });
+        window.dispatchEvent(event);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const imageGrid = document.getElementById('image-grid');
+        if (imageGrid) {
+            imageGrid.addEventListener('click', (e) => {
+                if (e.target instanceof HTMLImageElement) {
+                    const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
+                    openCarousel(index);
+                }
+            });
+        }
+    });
+
+    window.addEventListener('closeCarousel', closeCarousel);
+</script>

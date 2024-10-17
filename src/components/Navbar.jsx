@@ -23,31 +23,34 @@ export default function Navbar() {
     }
 
     return(
-        <nav>
-            <div className="flex justify-between px-[1rem]">
+        <nav className="z-10 w-swh">
+            <div className="flex justify-between px-[1rem] pt-[1rem]">
                 <a href="/" className='secondary-color'>Lily Ballif</a>
-                <button onClick={toggleMenu} className="text-[#808080]">Menu</button>
+                <button onClick={toggleMenu} className="text-[#808080]">{menuOpen ? 'Collapse' : 'Menu'}</button>
             </div>
-            <div className={`${menuOpen ? 'block' : 'hidden'} px-[1rem]`}>
-                <ul className="pt-[1rem]">
-                    <li className="cursor-pointer w-max"><a>Portraits</a></li>
-                    <li className="cursor-pointer w-max">
-                        <a onClick={() => setProjectsOpen(!projectsOpen)}>Projects</a>
-                        <ul className={projectsOpen ? 'block' : 'hidden'}>
-                            {projects.map((project, index) => (
-                                <li key={index} className="cursor-pointer w-max pl-[2rem]">
-                                    <a href={`/projects/${project.slug.current}`}>{project.title}</a>
-                                </li>
-                            ))}
-                        </ul>
-                    </li>
-                    <li className="cursor-pointer w-max"><a>Documentation</a></li>
-                </ul>
-                <ul className="pt-[1rem]">
-                    <li className="cursor-pointer w-max"><a>About</a></li>
-                    <li className="cursor-pointer w-max"><a>Email</a></li>
-                    <li className="cursor-pointer w-max"><a>Instagram</a></li>
-                </ul>
+            <div className="fixed w-full bg-white">
+                <div className={`${menuOpen ? 'block' : 'hidden'} px-[1rem]`}>
+                    <ul className="pt-[1rem]">
+                        <li className="cursor-pointer w-max"><a>Portraits</a></li>
+                        <li className="cursor-pointer w-max">
+                            <a onClick={() => setProjectsOpen(!projectsOpen)}>Projects</a>
+                            <ul className={projectsOpen ? 'block' : 'hidden'}>
+                                {projects.map((project, index) => (
+                                    <li key={index} className="cursor-pointer w-max pl-[2rem]">
+                                        <a href={`/projects/${project.slug.current}`}>{project.title}</a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </li>
+                        <li className="cursor-pointer w-max"><a>Documentation</a></li>
+                    </ul>
+                    <ul className="pt-[1rem]">
+                        <li className="cursor-pointer w-max"><a>About</a></li>
+                        <li className="cursor-pointer w-max"><a>Email</a></li>
+                        <li className="cursor-pointer w-max"><a>Instagram</a></li>
+                    </ul>
+                </div>
+                <div className="bg-white h-[50px]"></div>
             </div>
         </nav>
     )

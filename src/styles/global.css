@@ -27,6 +27,7 @@ body {
   font-family: "Jubilee", sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  font-size: 1rem;
 }
 
 img,
@@ -78,8 +79,4 @@ button {
   color: inherit;
   cursor: pointer;
   outline: inherit;
-}
-
-html {
-    font-size: 1rem;
 }
