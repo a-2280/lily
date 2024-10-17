@@ -25,7 +25,7 @@ export default function Navbar() {
     return(
         <nav className="z-10 w-swh">
             <div className="flex justify-between px-[1rem] pt-[1rem]">
-                <a href="/" className='secondary-color'>Lily Ballif</a>
+                <a href="/" className='secondary-color'>Lily Ballif<span className={menuOpen ? "hidden" : "hidden md:inline md:text-[#808080]"}> is a photographer based in Utah, USA. </span></a>
                 <button onClick={toggleMenu} className="text-[#808080]">{menuOpen ? 'Collapse' : 'Menu'}</button>
             </div>
             <div className="fixed w-full bg-white">
@@ -51,6 +51,10 @@ export default function Navbar() {
                     </ul>
                 </div>
                 <div className="bg-white h-[50px]"></div>
+            </div>
+            
+            <div className={menuOpen ? "md:fixed md:top-[15%] md:left-[18%] md:text-[#C8C8C8] md:text-[1.75rem]" : "hidden"}>
+                <p>Lily Ballif is a photographer based in Utah, USA.</p>
             </div>
         </nav>
     )
