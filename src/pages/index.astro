@@ -31,16 +31,16 @@ const favoriteImages: Image[] = projects.flatMap(project =>
 
 <Layout title="Welcome to Astro.">
 	<Navbar client:load />
-	<div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[1rem] pb-[1rem]">
+	<div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[1rem] pb-[0.5rem]">
 		{favoriteImages.map((image, index) => (
 			<div class="flex-shrink-0">
 				<img 
 					src={image.url} 
 					alt={image.title} 
-					class="h-[50vh] w-auto pr-[0.5rem] cursor-pointer" 
+					class="h-[50vh] w-auto pr-[0.5rem] cursor-pointer hover-shrink" 
 					data-index={index}
 				/>
-				<p>{image.title}</p>
+				<p class="pt-[0.5rem]">{image.title}</p>
 			</div>
 		))}
 	</div>
@@ -50,9 +50,16 @@ const favoriteImages: Image[] = projects.flatMap(project =>
 <style>
     .no-scroll-bar {
         scrollbar-width: none;
+        overflow-x: scroll; /* Allow horizontal scrolling */
     }
     .no-scroll-bar::-webkit-scrollbar {
         display: none;
+    }
+    .hover-shrink {
+        transition: transform 0.3s ease;
+    }
+    .hover-shrink:hover {
+        transform: scale(0.95);
     }
 </style>
 
@@ -93,4 +100,17 @@ const favoriteImages: Image[] = projects.flatMap(project =>
 
     // Listen for close events from the carousel
     window.addEventListener('closeCarousel', closeCarousel);
+
+    // Add horizontal scrolling with mouse wheel
+    document.addEventListener('DOMContentLoaded', () => {
+        const imageGrid = document.getElementById('image-grid');
+        if (imageGrid) {
+            imageGrid.addEventListener('wheel', (e) => {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    imageGrid.scrollLeft += e.deltaY;
+                }
+            });
+        }
+    });
 </script>

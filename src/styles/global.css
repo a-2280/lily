@@ -5,8 +5,8 @@
 @font-face {
   font-family: "Jubilee";
   src:
-    url("/fonts/OTJubilee-Silver.woff2") format("woff2"),
-    url("/fonts/OTJubilee-Silver.woff") format("woff");
+    url("../../public/fonts/OTJubilee-Silver.woff2") format("woff2"),
+    url("../../public/fonts/OTJubilee-Silver.woff") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
