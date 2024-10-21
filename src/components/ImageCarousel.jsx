@@ -63,7 +63,7 @@ const ImageCarousel = ({ images }) => {
         <button onClick={handleClose}>Close</button>
       </div>
       <div className="flex-1 flex justify-center items-center" {...handlers}>
-        <img src={currentImage.url} alt={currentImage.title} className="w-[92svw] max-h-[90svh] md:max-w-[96svw] md:w-auto md:h-[72svh]" />
+        <img src={currentImage.url} alt={currentImage.title} className="w-[92svw] max-h-[90svh] object-contain md:max-w-[96svw] md:w-auto md:h-[72svh]" />
       </div>
     </div>
   );
