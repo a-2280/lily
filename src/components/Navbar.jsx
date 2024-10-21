@@ -33,7 +33,7 @@ export default function Navbar() {
                 <div className="fixed w-full bg-white">
                     <div className={`${menuOpen ? 'block' : 'hidden'} px-[1rem]`}>
                         <ul className="pt-[1rem]">
-                            <li className="cursor-pointer w-max"><a>Portraits</a></li>
+                            <li className="cursor-pointer w-max"><a href="/portraits">Portraits</a></li>
                             <li className="cursor-pointer w-max">
                                 <a onClick={() => setProjectsOpen(!projectsOpen)}>Projects</a>
                                 <ul className={projectsOpen ? 'block' : 'hidden'}>
@@ -47,9 +47,9 @@ export default function Navbar() {
                             <li className="cursor-pointer w-max"><a>Documentation</a></li>
                         </ul>
                         <ul className="pt-[1rem]">
-                            <li className="cursor-pointer w-max secondary-colo"><a className="secondary-color cursor-default">About</a></li>
-                            <li className="cursor-pointer w-max"><a>Email</a></li>
-                            <li className="cursor-pointer w-max"><a>Instagram</a></li>
+                            <li className="cursor-pointer w-max secondary-colo"><a className="secondary-color" href="/about">About</a></li>
+                            <li className="cursor-pointer w-max"><a href="mailto:lily@ballif.org">Email</a></li>
+                            <li className="cursor-pointer w-max"><a href={'https://www.instagram.com/lily.ballif'} target="_blank">Instagram</a></li>
                         </ul>
                     </div>
                     <div className="bg-white h-[50px]"></div>

@@ -1,14 +1,14 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Navbar from '../components/Navbar';
-import ImageCarousel from '../components/ImageCarousel';
-import '../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar';
+import ImageCarousel from '../../components/ImageCarousel';
+import '../../styles/global.css';
 
-import { loadQuery } from "../sanity/lib/load-query";
+import { loadQuery } from "../../sanity/lib/load-query";
 
 interface Project {
   title: string;
-  favoriteImages: string[];
+  portraitImages: string[];
 }
 
 interface Image {
@@ -19,20 +19,20 @@ interface Image {
 const query = `
 *[_type == "projects"]{
   title,
-  "favoriteImages": projectImages[isFavorite == true].asset->url
+  "portraitImages": projectImages[isPortrait == true].asset->url
 }
 `;
 const { data: projects } = await loadQuery<Project[]>({ query });
 
-const favoriteImages: Image[] = projects.flatMap(project => 
-  project.favoriteImages.map(url => ({ title: project.title, url }))
+const portraitImages: Image[] = projects.flatMap(project => 
+  project.portraitImages.map(url => ({ title: project.title, url }))
 );
 ---
 
-<Layout title="Lily Ballif">
+<Layout title="Lily Ballif - Portraits">
 	<Navbar client:load />
 	<div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[1rem] pb-[0.5rem]">
-		{favoriteImages.map((image, index) => (
+		{portraitImages.map((image, index) => (
 			<div class="flex-shrink-0">
 				<img 
 					src={image.url} 
@@ -44,7 +44,7 @@ const favoriteImages: Image[] = projects.flatMap(project =>
 			</div>
 		))}
 	</div>
-	<ImageCarousel client:load images={favoriteImages} />
+	<ImageCarousel client:load images={portraitImages} />
 </Layout>
 
 <style>

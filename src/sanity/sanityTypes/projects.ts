@@ -37,7 +37,18 @@ export const projectsType = defineType({
         {
           type: "image",
           fields: [
-            { name: "isFavorite", type: "boolean", title: "Favorite" }
+            defineField({
+              name: "isFavorite",
+              type: "boolean",
+              title: "Favorite",
+              initialValue: false,
+            }),
+            defineField({
+              name: "isPortrait",
+              type: "boolean",
+              title: "Portrait",
+              initialValue: false,
+            }),
           ]
         }
       ],
