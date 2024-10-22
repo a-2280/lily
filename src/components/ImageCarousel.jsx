@@ -49,7 +49,7 @@ const ImageCarousel = ({ images }) => {
 
   return (
     <div className="absolute bg-white/85 h-svh w-svw flex flex-col z-20">
-      <div className="flex justify-between px-[1rem] pt-[1rem]">
+      <div className="flex justify-between px-[20px] pt-[20px] bg-white">
         <div className="flex gap-[0.5rem]">
           <div className="sm:hidden">
             {currentIndex + 1} of {images.length}
