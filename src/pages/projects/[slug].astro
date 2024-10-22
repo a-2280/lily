@@ -37,7 +37,7 @@ const images = project.projectImages.map((image, index) => ({
 
 <Layout title={project.title}>
   <Navbar client:load />
-  <div class="pb-[0.5rem]">
+  <div class="pb-[20px]">
       {project.projectImages && (
       <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px]">
           {project.projectImages.map((image, index) => (
@@ -50,7 +50,7 @@ const images = project.projectImages.map((image, index) => ({
           ))}
       </div>
       )}
-      <p class="pl-[1rem] pt-[0.5rem]">{project.title}</p>
+      <p class="pl-[20px] pt-[0.5rem]">{project.title}</p>
   </div>
   <ImageCarousel client:load images={images} />
 </Layout>
