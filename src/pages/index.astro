@@ -31,13 +31,13 @@ const favoriteImages: Image[] = projects.flatMap(project =>
 
 <Layout title="Lily Ballif">
 	<Navbar client:load />
-	<div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px] pb-[0.5rem]">
+	<div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[1rem] md:pl-[20px] pb-[0.5rem]">
 		{favoriteImages.map((image, index) => (
 			<div class="flex-shrink-0">
 				<img 
 					src={image.url} 
 					alt={image.title} 
-					class="h-[60vh] w-auto pr-[0.5rem] cursor-pointer hover-shrink" 
+					class="h-[50vh] md:h-[60svh] w-auto pr-[0.5rem] cursor-pointer hover-shrink" 
 					data-index={index}
 				/>
 				<p class="pt-[0.5rem]">{image.title}</p>
@@ -59,7 +59,7 @@ const favoriteImages: Image[] = projects.flatMap(project =>
         transition: transform 0.3s ease;
     }
     .hover-shrink:hover {
-        transform: scale(0.95);
+        transform: scale(0.975);
     }
 </style>
 

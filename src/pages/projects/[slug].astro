@@ -39,18 +39,18 @@ const images = project.projectImages.map((image, index) => ({
   <Navbar client:load />
   <div class="pb-[0.5rem]">
       {project.projectImages && (
-      <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px]">
+      <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[1rem] md:pl-[20px]">
           {project.projectImages.map((image, index) => (
           <img 
             src={image.asset.url} 
             alt="Project image" 
-            class="h-[60vh] pr-[0.5rem] cursor-pointer hover-shrink" 
+            class="h-[50vh] md:h-[60svh] pr-[0.5rem] cursor-pointer hover-shrink" 
             data-index={index}
           />
           ))}
       </div>
       )}
-      <p class="pl-[20px] pt-[0.5rem]">{project.title}</p>
+      <p class="pl-[1rem] pt-[0.5rem]">{project.title}</p>
   </div>
   <ImageCarousel client:load images={images} />
 </Layout>
@@ -67,7 +67,7 @@ const images = project.projectImages.map((image, index) => ({
         transition: transform 0.3s ease;
     }
     .hover-shrink:hover {
-        transform: scale(0.95);
+        transform: scale(0.975);
     }
 </style>
 

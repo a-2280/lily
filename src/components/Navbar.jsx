@@ -26,12 +26,12 @@ export default function Navbar() {
     return(
         <div>
             <nav className="z-10 w-swh">
-                <div className="flex justify-between px-[20px] pt-[20px]">
+                <div className="flex justify-between px-[1rem] pt-[1rem] md:px-[20px] md:pt-[20px]">
                     <a href="/" className='secondary-color'>Lily Ballif<span className={menuOpen ? "hidden" : "hidden md:inline md:text-[#808080]"}> is a photographer based in Utah, USA. </span></a>
                     <button onClick={toggleMenu} className="text-[#808080]">{menuOpen ? 'Collapse' : 'Menu'}</button>
                 </div>
                 <div className="fixed w-full bg-white">
-                    <div className={`${menuOpen ? 'block' : 'hidden'} px-[20px]`}>
+                    <div className={`${menuOpen ? 'block' : 'hidden'} px-[1rem] md:px-[20px]`}>
                         <ul className="pt-[1rem]">
                             <li className="cursor-pointer w-max"><a href="/portraits">Portraits</a></li>
                             <li className="cursor-pointer w-max">
