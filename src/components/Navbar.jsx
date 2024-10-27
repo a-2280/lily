@@ -33,25 +33,25 @@ export default function Navbar() {
                 <div className="fixed w-full bg-white">
                     <div className={`${menuOpen ? 'block' : 'hidden'} px-[20px]`}>
                         <ul className="pt-[1rem]">
-                            <li className="cursor-pointer w-max"><a href="/portraits">Portraits</a></li>
+                            <li className="cursor-pointer w-max"><a href="/portraits" className="hover:text-black">Portraits</a></li>
                             <li className="cursor-pointer w-max">
-                                <a onClick={() => setProjectsOpen(!projectsOpen)}>Projects</a>
+                                <a onClick={() => setProjectsOpen(!projectsOpen)} className="hover:text-black">Projects</a>
                                 <ul className={projectsOpen ? 'block' : 'hidden'}>
                                     {projects.map((project, index) => (
                                         <li key={index} className="cursor-pointer w-max pl-[2rem]">
-                                            <a href={`/projects/${project.slug.current}`}>{project.title}</a>
+                                            <a href={`/projects/${project.slug.current}`} className="hover:text-black">{project.title}</a>
                                         </li>
                                     ))}
                                 </ul>
                             </li>
-                            <li className="cursor-pointer w-max"><a href="/documentation">Documentation</a></li>
-                            <li className="cursor-pointer w-max"><a href="/fashion">Fashion</a></li>
-                            <li className="cursor-pointer w-max"><a href="/random">Random</a></li>
+                            <li className="cursor-pointer w-max"><a href="/documentation" className="hover:text-black">Documentation</a></li>
+                            <li className="cursor-pointer w-max"><a href="/fashion" className="hover:text-black">Fashion</a></li>
+                            <li className="cursor-pointer w-max"><a href="/random" className="hover:text-black">Random</a></li>
                         </ul>
                         <ul className="pt-[1rem]">
-                            <li className="cursor-pointer w-max secondary-colo"><a href="/about">About</a></li>
-                            <li className="cursor-pointer w-max"><a href="mailto:lily@ballif.org">Email</a></li>
-                            <li className="cursor-pointer w-max"><a href={'https://www.instagram.com/lily.ballif'} target="_blank">Instagram</a></li>
+                            <li className="cursor-pointer w-max secondary-colo"><a href="/about" className="hover:text-black">About</a></li>
+                            <li className="cursor-pointer w-max"><a href="mailto:lily@ballif.org" className="hover:text-black">Email</a></li>
+                            <li className="cursor-pointer w-max"><a href={'https://www.instagram.com/lily.ballif'} target="_blank" className="hover:text-black">Instagram</a></li>
                         </ul>
                     </div>
                     <div className="bg-white h-[75px]"></div>
