@@ -44,10 +44,12 @@ export default function Navbar() {
                                     ))}
                                 </ul>
                             </li>
-                            <li className="cursor-pointer w-max"><a>Documentation</a></li>
+                            <li className="cursor-pointer w-max"><a href="/documentation">Documentation</a></li>
+                            <li className="cursor-pointer w-max"><a href="/fashion">Fashion</a></li>
+                            <li className="cursor-pointer w-max"><a href="/random">Random</a></li>
                         </ul>
                         <ul className="pt-[1rem]">
-                            <li className="cursor-pointer w-max secondary-colo"><a className="secondary-color" href="/about">About</a></li>
+                            <li className="cursor-pointer w-max secondary-colo"><a href="/about">About</a></li>
                             <li className="cursor-pointer w-max"><a href="mailto:lily@ballif.org">Email</a></li>
                             <li className="cursor-pointer w-max"><a href={'https://www.instagram.com/lily.ballif'} target="_blank">Instagram</a></li>
                         </ul>

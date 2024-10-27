@@ -3,12 +3,12 @@ import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar';
 import ImageCarousel from '../../components/ImageCarousel';
 import '../../styles/global.css';
-
+import { Image } from 'astro:assets';
 import { loadQuery } from "../../sanity/lib/load-query";
 
-interface Project {
+interface Portrait {
   title: string;
-  portraitImages: string[];
+  portraitsImages: string[];
 }
 
 interface Image {
@@ -17,32 +17,35 @@ interface Image {
 }
 
 const query = `
-*[_type == "projects"]{
+*[_type == "portraits"]{
   title,
-  "portraitImages": projectImages[isPortrait == true].asset->url
+  "portraitsImages": portraitsImages[].asset->url
 }
 `;
-const { data: projects } = await loadQuery<Project[]>({ query });
+const { data: portraits } = await loadQuery<Portrait[]>({ query });
 
-const portraitImages: Image[] = projects.flatMap(project => 
-  project.portraitImages.map(url => ({ title: project.title, url }))
+const portraitImages: Image[] = portraits.flatMap(portrait => 
+  portrait.portraitsImages.map(url => ({ title: portrait.title, url }))
 );
 ---
 
 <Layout title="Lily Ballif - Portraits">
 	<Navbar client:load />
-	<div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px] pb-[20px]">
-		{portraitImages.map((image, index) => (
-			<div class="flex-shrink-0">
-				<img 
-					src={image.url} 
-					alt={image.title} 
-					class="h-[55svh] md:h-[60svh] w-auto pr-[0.5rem] cursor-pointer hover-shrink" 
-					data-index={index}
-				/>
-				<p class="pt-[0.5rem]">{image.title}</p>
-			</div>
-		))}
+	<div class="pb-[20px]">
+		<div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px]">
+			{portraitImages.map((image, index) => (
+				<Image 
+                    src={image.url} 
+                    alt={image.title}
+                    width={800}
+                    height={1200}
+                    class="h-[55svh] md:h-[60svh] w-auto pr-[0.5rem] cursor-pointer hover-shrink"
+                    data-index={index}
+                    loading={index < 3 ? "eager" : "lazy"}
+                />
+			))}
+		</div>
+		<p class="pl-[20px] pt-[0.5rem]">Portraits</p>
 	</div>
 	<ImageCarousel client:load images={portraitImages} />
 </Layout>
@@ -85,7 +88,6 @@ const portraitImages: Image[] = projects.flatMap(project =>
         window.dispatchEvent(event);
     }
 
-    // Add click listeners to images
     document.addEventListener('DOMContentLoaded', () => {
         const imageGrid = document.getElementById('image-grid');
         if (imageGrid) {
@@ -95,16 +97,7 @@ const portraitImages: Image[] = projects.flatMap(project =>
                     openCarousel(index);
                 }
             });
-        }
-    });
 
-    // Listen for close events from the carousel
-    window.addEventListener('closeCarousel', closeCarousel);
-
-    // Add horizontal scrolling with mouse wheel
-    document.addEventListener('DOMContentLoaded', () => {
-        const imageGrid = document.getElementById('image-grid');
-        if (imageGrid) {
             imageGrid.addEventListener('wheel', (e) => {
                 if (e.deltaY !== 0) {
                     e.preventDefault();
@@ -113,4 +106,6 @@ const portraitImages: Image[] = projects.flatMap(project =>
             });
         }
     });
+
+    window.addEventListener('closeCarousel', closeCarousel);
 </script>

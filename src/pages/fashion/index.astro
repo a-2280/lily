@@ -1,0 +1,133 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import Navbar from '../../components/Navbar';
+import ImageCarousel from '../../components/ImageCarousel';
+import '../../styles/global.css';
+
+import { loadQuery } from "../../sanity/lib/load-query";
+
+interface Fashion {
+  title: string;
+  fashionImages: {
+    url: string;
+    metadata: {
+      dimensions: {
+        width: number;
+        height: number;
+      };
+    };
+  }[];
+}
+
+interface ImageWithDimensions {
+  title: string;
+  url: string;
+  width: number;
+  height: number;
+}
+
+const query = `
+*[_type == "fashion"][0]{
+  title,
+  "fashionImages": fashionImages[].asset->{
+    "url": url,
+    metadata {
+      dimensions {
+        width,
+        height
+      }
+    }
+  }
+}
+`;
+const { data: fashion } = await loadQuery<Fashion>({ query });
+
+const fashionImages: ImageWithDimensions[] = fashion.fashionImages.map((image, index) => ({
+  title: `${fashion.title} - Image ${index + 1}`,
+  url: image.url,
+  width: image.metadata.dimensions.width,
+  height: image.metadata.dimensions.height
+}));
+---
+
+<Layout title={fashion.title}>
+  <Navbar client:load />
+  <div class="pb-[20px]">
+    <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px]">
+      {fashionImages.map((image, index) => (
+        <Image 
+          src={image.url}
+          alt={image.title}
+          width={image.width}
+          height={image.height}
+          class="h-[55svh] md:h-[60svh] w-auto pr-[0.5rem] cursor-pointer hover-shrink object-contain" 
+          data-index={index}
+          loading={index < 3 ? "eager" : "lazy"}
+        />
+      ))}
+    </div>
+    <p class="pl-[20px] pt-[0.5rem]">{fashion.title}</p>
+  </div>
+  <ImageCarousel client:load images={fashionImages} />
+</Layout>
+
+<style>
+  .no-scroll-bar {
+    scrollbar-width: none;
+    overflow-x: scroll;
+  }
+  .no-scroll-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .hover-shrink {
+    transition: transform 0.3s ease;
+  }
+  .hover-shrink:hover {
+    transform: scale(0.975);
+  }
+</style>
+
+<script>
+  let isCarouselOpen = false;
+  let currentIndex = 0;
+
+  function openCarousel(index) {
+    isCarouselOpen = true;
+    currentIndex = index;
+    updateCarousel();
+  }
+
+  function closeCarousel() {
+    isCarouselOpen = false;
+    updateCarousel();
+  }
+
+  function updateCarousel() {
+    const event = new CustomEvent('updateCarousel', { 
+      detail: { isOpen: isCarouselOpen, index: currentIndex } 
+    });
+    window.dispatchEvent(event);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const imageGrid = document.getElementById('image-grid');
+    if (imageGrid) {
+      imageGrid.addEventListener('click', (e) => {
+        if (e.target instanceof HTMLImageElement) {
+          const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
+          openCarousel(index);
+        }
+      });
+
+      imageGrid.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          imageGrid.scrollLeft += e.deltaY;
+        }
+      });
+    }
+  });
+
+  window.addEventListener('closeCarousel', closeCarousel);
+</script>

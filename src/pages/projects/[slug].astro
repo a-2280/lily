@@ -1,5 +1,6 @@
 ---
 import { loadQuery } from "../../sanity/lib/load-query";
+import { Image } from 'astro:assets';
 import Navbar from "../../components/Navbar";
 import ImageCarousel from "../../components/ImageCarousel";
 import '../../styles/global.css';
@@ -20,97 +21,118 @@ const query = `*[_type == "projects" && slug.current == "${slug}"][0]{
   title,
   projectImages[]{
     asset->{
-      url
+      url,
+      metadata {
+        dimensions {
+          width,
+          height
+        }
+      }
     }
   }
 }`;
 const { data: project } = await loadQuery<{
   title: string;
-  projectImages: { asset: { url: string } }[];
+  projectImages: {
+    asset: {
+      url: string;
+      metadata: {
+        dimensions: {
+          width: number;
+          height: number;
+        };
+      };
+    };
+  }[];
 }>({ query });
 
 const images = project.projectImages.map((image, index) => ({
   title: `${project.title} - Image ${index + 1}`,
-  url: image.asset.url
+  url: image.asset.url,
+  width: image.asset.metadata.dimensions.width,
+  height: image.asset.metadata.dimensions.height
 }));
 ---
 
 <Layout title={project.title}>
   <Navbar client:load />
   <div class="pb-[20px]">
-      {project.projectImages && (
+    {project.projectImages && (
       <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px]">
-          {project.projectImages.map((image, index) => (
-          <img 
-            src={image.asset.url} 
-            alt="Project image" 
-            class="h-[60svh] pr-[0.5rem] cursor-pointer hover-shrink" 
+        {project.projectImages.map((image, index) => (
+          <Image 
+            src={image.asset.url}
+            alt={`${project.title} - Image ${index + 1}`}
+            width={image.asset.metadata.dimensions.width}
+            height={image.asset.metadata.dimensions.height}
+            class="h-[55svh] md:h-[60svh] pr-[0.5rem] cursor-pointer hover-shrink object-contain"
             data-index={index}
+            loading={index < 3 ? "eager" : "lazy"}
           />
-          ))}
+        ))}
       </div>
-      )}
-      <p class="pl-[20px] pt-[0.5rem]">{project.title}</p>
+    )}
+    <p class="pl-[20px] pt-[0.5rem]">{project.title}</p>
   </div>
   <ImageCarousel client:load images={images} />
 </Layout>
 
 <style>
-    .no-scroll-bar {
-        scrollbar-width: none;
-        overflow-x: scroll;
-    }
-    .no-scroll-bar::-webkit-scrollbar {
-        display: none;
-    }
-    .hover-shrink {
-        transition: transform 0.3s ease;
-    }
-    .hover-shrink:hover {
-        transform: scale(0.975);
-    }
+  .no-scroll-bar {
+    scrollbar-width: none;
+    overflow-x: scroll;
+  }
+  .no-scroll-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .hover-shrink {
+    transition: transform 0.3s ease;
+  }
+  .hover-shrink:hover {
+    transform: scale(0.975);
+  }
 </style>
 
 <script>
-    let isCarouselOpen = false;
-    let currentIndex = 0;
+  let isCarouselOpen = false;
+  let currentIndex = 0;
 
-    function openCarousel(index) {
-        isCarouselOpen = true;
-        currentIndex = index;
-        updateCarousel();
-    }
+  function openCarousel(index) {
+    isCarouselOpen = true;
+    currentIndex = index;
+    updateCarousel();
+  }
 
-    function closeCarousel() {
-        isCarouselOpen = false;
-        updateCarousel();
-    }
+  function closeCarousel() {
+    isCarouselOpen = false;
+    updateCarousel();
+  }
 
-    function updateCarousel() {
-        const event = new CustomEvent('updateCarousel', { 
-            detail: { isOpen: isCarouselOpen, index: currentIndex } 
-        });
-        window.dispatchEvent(event);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const imageGrid = document.getElementById('image-grid');
-        if (imageGrid) {
-            imageGrid.addEventListener('click', (e) => {
-                if (e.target instanceof HTMLImageElement) {
-                    const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
-                    openCarousel(index);
-                }
-            });
-
-            imageGrid.addEventListener('wheel', (e) => {
-                if (e.deltaY !== 0) {
-                    e.preventDefault();
-                    imageGrid.scrollLeft += e.deltaY;
-                }
-            });
-        }
+  function updateCarousel() {
+    const event = new CustomEvent('updateCarousel', { 
+      detail: { isOpen: isCarouselOpen, index: currentIndex } 
     });
+    window.dispatchEvent(event);
+  }
 
-    window.addEventListener('closeCarousel', closeCarousel);
+  document.addEventListener('DOMContentLoaded', () => {
+    const imageGrid = document.getElementById('image-grid');
+    if (imageGrid) {
+      imageGrid.addEventListener('click', (e) => {
+        if (e.target instanceof HTMLImageElement) {
+          const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
+          openCarousel(index);
+        }
+      });
+
+      imageGrid.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          imageGrid.scrollLeft += e.deltaY;
+        }
+      });
+    }
+  });
+
+  window.addEventListener('closeCarousel', closeCarousel);
 </script>

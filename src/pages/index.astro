@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar';
 import ImageCarousel from '../components/ImageCarousel';
 import '../styles/global.css';
-
+import { Image } from 'astro:assets';
 import { loadQuery } from "../sanity/lib/load-query";
 
 interface Project {
@@ -34,12 +34,17 @@ const favoriteImages: Image[] = projects.flatMap(project =>
 	<div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px] pb-[20px]">
 		{favoriteImages.map((image, index) => (
 			<div class="flex-shrink-0">
-				<img 
-					src={image.url} 
-					alt={image.title} 
-					class="h-[55svh] md:h-[60svh] w-auto pr-[0.5rem] cursor-pointer hover-shrink" 
-					data-index={index}
-				/>
+				<Image 
+                    src={image.url} 
+                    alt={image.title}
+                    width={800}
+                    height={1200}
+                    class="h-[55svh] md:h-[60svh] w-auto pr-[0.5rem] cursor-pointer hover-shrink"
+                    data-index={index}
+                    loading={index < 3 ? "eager" : "lazy"}
+                    format="webp"
+                    quality={80}
+                />
 				<p class="pt-[0.5rem]">{image.title}</p>
 			</div>
 		))}
