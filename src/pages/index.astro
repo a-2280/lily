@@ -41,7 +41,7 @@ const favoriteImages: Image[] = projects.flatMap(project =>
                     height={1200}
                     class="h-[55svh] md:h-[60svh] w-auto pr-[0.5rem] cursor-pointer hover-shrink"
                     data-index={index}
-                    loading={index < 3 ? "eager" : "lazy"}
+                    loading={index < 5 ? "eager" : "lazy"}
                     format="webp"
                     quality={80}
                 />
