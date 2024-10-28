@@ -1,38 +1,93 @@
 import React, { useState, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
 
-const ImageCarousel = ({ images }) => {
+const ImageCarousel = ({ 
+  images, 
+  categoryImages = null // Make categoryImages optional
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [displayImages, setDisplayImages] = useState([]);
 
   useEffect(() => {
     const handleUpdate = (event) => {
-      const { isOpen, index } = event.detail;
+      const { isOpen, index, category, projectTitle } = event.detail;
       setIsOpen(isOpen);
-      setCurrentIndex(index);
+      
+      // If we have categoryImages (homepage), use project-specific images
+      if (categoryImages && category && projectTitle) {
+        const projectImages = categoryImages[category]?.filter(
+          img => img.projectTitle === projectTitle
+        ) || [];
+        setDisplayImages(projectImages);
+        
+        // Find the index of the clicked image in the project images
+        const clickedImage = images[index];
+        const newIndex = projectImages.findIndex(img => img.url === clickedImage.url);
+        setCurrentIndex(Math.max(0, newIndex));
+      } else {
+        // For project pages, use all images passed directly
+        setDisplayImages(images);
+        setCurrentIndex(index);
+      }
     };
 
     window.addEventListener("updateCarousel", handleUpdate);
+    return () => window.removeEventListener("updateCarousel", handleUpdate);
+  }, [images, categoryImages]);
 
-    return () => {
-      window.removeEventListener("updateCarousel", handleUpdate);
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (!isOpen) return;
+      
+      switch (event.key) {
+        case 'ArrowLeft':
+          handlePrev();
+          break;
+        case 'ArrowRight':
+          handleNext();
+          break;
+        case 'Escape':
+          handleClose();
+          break;
+        default:
+          break;
+      }
     };
-  }, []);
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   const handlePrev = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex > 0 ? prevIndex - 1 : images.length - 1
+      prevIndex > 0 ? prevIndex - 1 : displayImages.length - 1
     );
   };
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex < images.length - 1 ? prevIndex + 1 : 0
+      prevIndex < displayImages.length - 1 ? prevIndex + 1 : 0
     );
   };
 
   const handleClose = () => {
     window.dispatchEvent(new CustomEvent("closeCarousel"));
+    setDisplayImages([]);
+  };
+
+  const handleImageClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const clickPosition = x / rect.width;
+
+    if (clickPosition < 0.4) {
+      handlePrev();
+    } else {
+      handleNext();
+    }
   };
 
   const handlers = useSwipeable({
@@ -41,31 +96,46 @@ const ImageCarousel = ({ images }) => {
     trackMouse: true
   });
 
-  if (!isOpen || !images || images.length === 0) {
+  if (!isOpen || !displayImages || displayImages.length === 0) {
     return null;
   }
 
-  const currentImage = images[currentIndex];
+  const currentImage = displayImages[currentIndex];
 
   return (
-    <div className="absolute bg-white/85 h-svh w-svw flex flex-col z-20">
-      <div className="flex justify-between px-[20px] pt-[20px] bg-white">
-        <div className="flex gap-[0.5rem]">
-          <div className="sm:hidden">
-            {currentIndex + 1} of {images.length}
+    <>
+      <div 
+        className="absolute bg-white/90 h-svh w-svw z-10"
+        onClick={handleClose}
+      />
+      
+      <div className="absolute h-svh w-svw flex flex-col z-20 pointer-events-none">
+        <div className="flex justify-between px-[20px] pt-[20px] bg-white pointer-events-auto">
+          <div className="flex gap-[0.5rem]">
+            <div className="sm:hidden">
+              {currentIndex + 1} of {displayImages.length}
+            </div>
+            <div className="hidden sm:flex gap-[0.5rem]">
+              <button onClick={handlePrev}>Previous</button>
+              <p> / </p>
+              <button onClick={handleNext}>Next</button>
+            </div>
           </div>
-          <div className="hidden sm:flex gap-[0.5rem]">
-            <button onClick={handlePrev}>Previous</button>
-            <p> / </p>
-            <button onClick={handleNext}>Next</button>
+          <button onClick={handleClose}>Close</button>
+        </div>
+        
+        <div className="flex-1 flex justify-center items-center" {...handlers}>
+          <div className="pointer-events-auto">
+            <img 
+              src={currentImage.url} 
+              alt={currentImage.title} 
+              onClick={handleImageClick}
+              className="w-[92svw] max-h-[90svh] object-contain md:max-w-[96svw] md:w-auto md:h-[90svh]" 
+            />
           </div>
         </div>
-        <button onClick={handleClose}>Close</button>
       </div>
-      <div className="flex-1 flex justify-center items-center" {...handlers}>
-        <img src={currentImage.url} alt={currentImage.title} className="w-[92svw] max-h-[90svh] object-contain md:max-w-[96svw] md:w-auto md:h-[72svh]" />
-      </div>
-    </div>
+    </>
   );
 };
 

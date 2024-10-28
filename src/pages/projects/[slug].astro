@@ -65,14 +65,14 @@ const images = project.projectImages.map((image, index) => ({
             alt={`${project.title} - Image ${index + 1}`}
             width={image.asset.metadata.dimensions.width}
             height={image.asset.metadata.dimensions.height}
-            class="h-[55svh] md:h-[60svh] pr-[0.5rem] cursor-pointer hover-shrink object-contain"
+            class="h-[55svh] md:h-[60svh] pr-[10px] cursor-pointer hover-shrink object-contain"
             data-index={index}
-            loading={index < 5 ? "eager" : "lazy"}
+            loading={index < 3 ? "eager" : "lazy"}
           />
         ))}
       </div>
     )}
-    <p class="pl-[20px] pt-[0.5rem]">{project.title}</p>
+    <p class="pl-[20px] pt-[10px] leading-none">{project.title}</p>
   </div>
   <ImageCarousel client:load images={images} />
 </Layout>
@@ -88,24 +88,42 @@ const images = project.projectImages.map((image, index) => ({
   .hover-shrink {
     transition: transform 0.3s ease;
   }
-  .hover-shrink:hover {
+  /* Only apply hover effect when menu is closed */
+  body:not(.menu-open) .hover-shrink:hover {
     transform: scale(0.975);
   }
 </style>
 
-<script>
+<script is:inline>
   let isCarouselOpen = false;
   let currentIndex = 0;
+
+  // Listen for menu state changes
+  window.addEventListener('menuStateChanged', (e) => {
+    if (e.detail.isOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
+  });
+
+  function preventArrowScroll(e) {
+    if (isCarouselOpen && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+      e.preventDefault();
+    }
+  }
 
   function openCarousel(index) {
     isCarouselOpen = true;
     currentIndex = index;
     updateCarousel();
+    document.addEventListener('keydown', preventArrowScroll);
   }
 
   function closeCarousel() {
     isCarouselOpen = false;
     updateCarousel();
+    document.removeEventListener('keydown', preventArrowScroll);
   }
 
   function updateCarousel() {

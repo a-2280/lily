@@ -17,16 +17,21 @@ export default function Navbar() {
     }, [])
 
     const toggleMenu = () => {
-        setMenuOpen(!menuOpen);
+        const newMenuState = !menuOpen;
+        setMenuOpen(newMenuState);
         if (menuOpen) {
             setProjectsOpen(false);
         }
+        // Dispatch event for menu state change
+        window.dispatchEvent(new CustomEvent('menuStateChanged', { 
+            detail: { isOpen: newMenuState } 
+        }));
     }
 
     return(
         <div>
             <nav className="z-10 w-swh">
-                <div className="flex justify-between px-[20px] pt-[20px]">
+                <div className="flex justify-between px-[20px] md:pt-[20px]">
                     <a href="/" className='secondary-color'>Lily Ballif<span className={menuOpen ? "hidden" : "hidden md:inline md:text-[#808080]"}> is a photographer based in Utah, USA. </span></a>
                     <button onClick={toggleMenu} className="text-[#808080]">{menuOpen ? 'Collapse' : 'Menu'}</button>
                 </div>

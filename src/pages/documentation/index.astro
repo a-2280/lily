@@ -51,7 +51,7 @@ const documentationImages: ImageWithDimensions[] = documentation.documentationIm
 }));
 ---
 
-<Layout title={documentation.title}>
+<Layout title={`Lily Ballif - ${documentation.title}`}>
   <Navbar client:load />
   <div class="pb-[20px]">
     <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px]">
@@ -61,13 +61,13 @@ const documentationImages: ImageWithDimensions[] = documentation.documentationIm
           alt={image.title}
           width={image.width}
           height={image.height}
-          class="h-[55svh] md:h-[60svh] w-auto pr-[0.5rem] cursor-pointer hover-shrink object-contain" 
+          class="h-[55svh] md:h-[60svh] w-auto pr-[10px] cursor-pointer hover-shrink object-contain" 
           data-index={index}
-          loading={index < 5 ? "eager" : "lazy"}
+          loading={index < 3 ? "eager" : "lazy"}
         />
       ))}
     </div>
-    <p class="pl-[20px] pt-[0.5rem]">{documentation.title}</p>
+    <p class="pl-[20px] pt-[10px] leading-none">{documentation.title}</p>
   </div>
   <ImageCarousel client:load images={documentationImages} />
 </Layout>
@@ -83,51 +83,69 @@ const documentationImages: ImageWithDimensions[] = documentation.documentationIm
   .hover-shrink {
     transition: transform 0.3s ease;
   }
-  .hover-shrink:hover {
+  /* Only apply hover effect when menu is closed */
+  body:not(.menu-open) .hover-shrink:hover {
     transform: scale(0.975);
   }
 </style>
 
-<script>
-  let isCarouselOpen = false;
-  let currentIndex = 0;
-
-  function openCarousel(index) {
-    isCarouselOpen = true;
-    currentIndex = index;
-    updateCarousel();
-  }
-
-  function closeCarousel() {
-    isCarouselOpen = false;
-    updateCarousel();
-  }
-
-  function updateCarousel() {
-    const event = new CustomEvent('updateCarousel', { 
-      detail: { isOpen: isCarouselOpen, index: currentIndex } 
+<script is:inline>
+    let isCarouselOpen = false;
+    let currentIndex = 0;
+  
+    // Listen for menu state changes
+    window.addEventListener('menuStateChanged', (e) => {
+      if (e.detail.isOpen) {
+        document.body.classList.add('menu-open');
+      } else {
+        document.body.classList.remove('menu-open');
+      }
     });
-    window.dispatchEvent(event);
-  }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const imageGrid = document.getElementById('image-grid');
-    if (imageGrid) {
-      imageGrid.addEventListener('click', (e) => {
-        if (e.target instanceof HTMLImageElement) {
-          const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
-          openCarousel(index);
-        }
-      });
-
-      imageGrid.addEventListener('wheel', (e) => {
-        if (e.deltaY !== 0) {
-          e.preventDefault();
-          imageGrid.scrollLeft += e.deltaY;
-        }
-      });
+    function preventArrowScroll(e) {
+      if (isCarouselOpen && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+        e.preventDefault();
+      }
     }
-  });
-
-  window.addEventListener('closeCarousel', closeCarousel);
+  
+    function openCarousel(index) {
+      isCarouselOpen = true;
+      currentIndex = index;
+      updateCarousel();
+      document.addEventListener('keydown', preventArrowScroll);
+    }
+  
+    function closeCarousel() {
+      isCarouselOpen = false;
+      updateCarousel();
+      document.removeEventListener('keydown', preventArrowScroll);
+    }
+  
+    function updateCarousel() {
+      const event = new CustomEvent('updateCarousel', { 
+        detail: { isOpen: isCarouselOpen, index: currentIndex } 
+      });
+      window.dispatchEvent(event);
+    }
+  
+    document.addEventListener('DOMContentLoaded', () => {
+      const imageGrid = document.getElementById('image-grid');
+      if (imageGrid) {
+        imageGrid.addEventListener('click', (e) => {
+          if (e.target instanceof HTMLImageElement) {
+            const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
+            openCarousel(index);
+          }
+        });
+  
+        imageGrid.addEventListener('wheel', (e) => {
+          if (e.deltaY !== 0) {
+            e.preventDefault();
+            imageGrid.scrollLeft += e.deltaY;
+          }
+        });
+      }
+    });
+  
+    window.addEventListener('closeCarousel', closeCarousel);
 </script>

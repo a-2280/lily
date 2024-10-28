@@ -39,13 +39,13 @@ const portraitImages: Image[] = portraits.flatMap(portrait =>
                     alt={image.title}
                     width={800}
                     height={1200}
-                    class="h-[55svh] md:h-[60svh] w-auto pr-[0.5rem] cursor-pointer hover-shrink"
+                    class="h-[55svh] md:h-[60svh] w-auto pr-[10px] cursor-pointer hover-shrink"
                     data-index={index}
-                    loading={index < 5 ? "eager" : "lazy"}
+                    loading={index < 3 ? "eager" : "lazy"}
                 />
 			))}
 		</div>
-		<p class="pl-[20px] pt-[0.5rem]">Portraits</p>
+		<p class="pl-[20px] pt-[10px] leading-none">Portraits</p>
 	</div>
 	<ImageCarousel client:load images={portraitImages} />
 </Layout>
@@ -53,7 +53,7 @@ const portraitImages: Image[] = portraits.flatMap(portrait =>
 <style>
     .no-scroll-bar {
         scrollbar-width: none;
-        overflow-x: scroll; /* Allow horizontal scrolling */
+        overflow-x: scroll;
     }
     .no-scroll-bar::-webkit-scrollbar {
         display: none;
@@ -61,7 +61,8 @@ const portraitImages: Image[] = portraits.flatMap(portrait =>
     .hover-shrink {
         transition: transform 0.3s ease;
     }
-    .hover-shrink:hover {
+    /* Only apply hover effect when menu is closed */
+    body:not(.menu-open) .hover-shrink:hover {
         transform: scale(0.975);
     }
 </style>
@@ -70,15 +71,32 @@ const portraitImages: Image[] = portraits.flatMap(portrait =>
     let isCarouselOpen = false;
     let currentIndex = 0;
 
+    // Listen for menu state changes
+    window.addEventListener('menuStateChanged', (e) => {
+      if (e.detail.isOpen) {
+        document.body.classList.add('menu-open');
+      } else {
+        document.body.classList.remove('menu-open');
+      }
+    });
+
+    function preventArrowScroll(e) {
+        if (isCarouselOpen && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+            e.preventDefault();
+        }
+    }
+
     function openCarousel(index) {
         isCarouselOpen = true;
         currentIndex = index;
         updateCarousel();
+        document.addEventListener('keydown', preventArrowScroll);
     }
 
     function closeCarousel() {
         isCarouselOpen = false;
         updateCarousel();
+        document.removeEventListener('keydown', preventArrowScroll);
     }
 
     function updateCarousel() {

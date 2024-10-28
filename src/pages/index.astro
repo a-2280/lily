@@ -9,34 +9,42 @@ import { loadQuery } from "../sanity/lib/load-query";
 interface Project {
   title: string;
   favoriteImages: string[];
+  allImages: string[];
 }
 
 interface Image {
   title: string;
   url: string;
+  category: string;
+  projectTitle: string;
 }
 
 const query = `
 {
   "projects": *[_type == "projects"]{
     title,
-    "favoriteImages": projectImages[isFavorite == true].asset->url
+    "favoriteImages": projectImages[isFavorite == true].asset->url,
+    "allImages": coalesce(projectImages[].asset->url, [])
   },
   "documentation": *[_type == "documentation"]{
     title,
-    "favoriteImages": documentationImages[isFavorite == true].asset->url
+    "favoriteImages": documentationImages[isFavorite == true].asset->url,
+    "allImages": coalesce(documentationImages[].asset->url, [])
   },
   "fashion": *[_type == "fashion"]{
     title,
-    "favoriteImages": fashionImages[isFavorite == true].asset->url
+    "favoriteImages": fashionImages[isFavorite == true].asset->url,
+    "allImages": coalesce(fashionImages[].asset->url, [])
   },
   "portraits": *[_type == "portraits"]{
     title,
-    "favoriteImages": portraitsImages[isFavorite == true].asset->url
+    "favoriteImages": portraitsImages[isFavorite == true].asset->url,
+    "allImages": coalesce(portraitsImages[].asset->url, [])
   },
   "random": *[_type == "random"]{
     title,
-    "favoriteImages": randomImages[isFavorite == true].asset->url
+    "favoriteImages": randomImages[isFavorite == true].asset->url,
+    "allImages": coalesce(randomImages[].asset->url, [])
   }
 }
 `;
@@ -49,26 +57,80 @@ const { data } = await loadQuery<{
   random: Project[];
 }>({ query });
 
-// Combine all favorite images into a single array
-const unfilteredFavoriteImages: Image[] = [
-  ...data.projects.flatMap(doc => 
-    doc.favoriteImages.map(url => ({ title: doc.title, url }))
-  ),
-  ...data.documentation.flatMap(doc => 
-    doc.favoriteImages.map(url => ({ title: doc.title, url }))
-  ),
-  ...data.fashion.flatMap(doc => 
-    doc.favoriteImages.map(url => ({ title: doc.title, url }))
-  ),
-  ...data.portraits.flatMap(doc => 
-    doc.favoriteImages.map(url => ({ title: doc.title, url }))
-  ),
-  ...data.random.flatMap(doc => 
-    doc.favoriteImages.map(url => ({ title: doc.title, url }))
-  )
-];
+const categoryImages = new Map<string, Image[]>();
 
-// Fisher-Yates shuffle algorithm
+function processCategory(category: string, projects: Project[]) {
+  const images: Image[] = [];
+  if (projects && Array.isArray(projects)) {
+    projects.forEach(project => {
+      if (project.allImages && Array.isArray(project.allImages)) {
+        project.allImages.forEach(url => {
+          if (url) {
+            images.push({
+              title: project.title,
+              url,
+              category,
+              projectTitle: project.title
+            });
+          }
+        });
+      }
+    });
+  }
+  categoryImages.set(category, images);
+}
+
+// Process each category with null checks
+processCategory('projects', data.projects || []);
+processCategory('documentation', data.documentation || []);
+processCategory('fashion', data.fashion || []);
+processCategory('portraits', data.portraits || []);
+processCategory('random', data.random || []);
+
+// Create the favorites array for display with null checks
+const unfilteredFavoriteImages: Image[] = [
+  ...(data.projects || []).flatMap(doc => 
+    (doc.favoriteImages || []).map(url => ({ 
+      title: doc.title, 
+      url, 
+      category: 'projects',
+      projectTitle: doc.title 
+    }))
+  ),
+  ...(data.documentation || []).flatMap(doc => 
+    (doc.favoriteImages || []).map(url => ({ 
+      title: doc.title, 
+      url, 
+      category: 'documentation',
+      projectTitle: doc.title 
+    }))
+  ),
+  ...(data.fashion || []).flatMap(doc => 
+    (doc.favoriteImages || []).map(url => ({ 
+      title: doc.title, 
+      url, 
+      category: 'fashion',
+      projectTitle: doc.title 
+    }))
+  ),
+  ...(data.portraits || []).flatMap(doc => 
+    (doc.favoriteImages || []).map(url => ({ 
+      title: doc.title, 
+      url, 
+      category: 'portraits',
+      projectTitle: doc.title 
+    }))
+  ),
+  ...(data.random || []).flatMap(doc => 
+    (doc.favoriteImages || []).map(url => ({ 
+      title: doc.title, 
+      url, 
+      category: 'random',
+      projectTitle: doc.title 
+    }))
+  )
+].filter(image => image.url);
+
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -78,97 +140,123 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-// Create shuffled version of the favorites array
 const favoriteImages = shuffleArray(unfilteredFavoriteImages);
 ---
 
 <Layout title="Lily Ballif">
-	<Navbar client:load />
-	<div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px] pb-[20px]">
-		{favoriteImages.map((image, index) => (
-			<div class="flex-shrink-0">
-				<Image 
-                    src={image.url} 
-                    alt={image.title}
-                    width={800}
-                    height={1200}
-                    class="h-[55svh] md:h-[60svh] w-auto pr-[0.5rem] cursor-pointer hover-shrink"
-                    data-index={index}
-                    loading={index < 5 ? "eager" : "lazy"}
-                    format="webp"
-                    quality={80}
-                />
-				<p class="pt-[0.5rem]">{image.title}</p>
-			</div>
-		))}
-	</div>
-	<ImageCarousel client:load images={favoriteImages} />
+  <Navbar client:load />
+  <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px] pb-[20px]">
+    {favoriteImages.map((image, index) => (
+      <div class="flex-shrink-0">
+        <Image 
+          src={image.url} 
+          alt={image.title}
+          width={800}
+          height={1200}
+          class="h-[55svh] md:h-[60svh] w-auto pr-[10px] cursor-pointer hover-shrink"
+          data-index={index}
+          data-category={image.category}
+          data-project-title={image.projectTitle}
+          loading={index < 5 ? "eager" : "lazy"}
+          format="webp"
+          quality={80}
+        />
+        <p class="pt-[10px] leading-none">{image.title}</p>
+      </div>
+    ))}
+  </div>
+  <ImageCarousel 
+    client:load 
+    images={favoriteImages} 
+    categoryImages={Object.fromEntries(categoryImages)}
+  />
 </Layout>
 
 <style>
-    .no-scroll-bar {
-        scrollbar-width: none;
-        overflow-x: scroll; /* Allow horizontal scrolling */
-    }
-    .no-scroll-bar::-webkit-scrollbar {
-        display: none;
-    }
-    .hover-shrink {
-        transition: transform 0.3s ease;
-    }
-    .hover-shrink:hover {
-        transform: scale(0.975);
-    }
+  .no-scroll-bar {
+    scrollbar-width: none;
+    overflow-x: scroll;
+  }
+  .no-scroll-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .hover-shrink {
+    transition: transform 0.3s ease;
+  }
+  /* Only apply hover effect when menu is closed */
+  body:not(.menu-open) .hover-shrink:hover {
+    transform: scale(0.975);
+  }
 </style>
 
 <script is:inline>
-    let isCarouselOpen = false;
-    let currentIndex = 0;
+  let isCarouselOpen = false;
+  let currentIndex = 0;
+  let currentCategory = '';
+  let currentProjectTitle = '';
 
-    function openCarousel(index) {
-        isCarouselOpen = true;
-        currentIndex = index;
-        updateCarousel();
+  // Listen for menu state changes
+  window.addEventListener('menuStateChanged', (e) => {
+    if (e.detail.isOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
     }
+  });
 
-    function closeCarousel() {
-        isCarouselOpen = false;
-        updateCarousel();
+  function openCarousel(index, category, projectTitle) {
+    isCarouselOpen = true;
+    currentIndex = index;
+    currentCategory = category;
+    currentProjectTitle = projectTitle;
+    updateCarousel();
+    document.addEventListener('keydown', preventArrowScroll);
+  }
+
+  function closeCarousel() {
+    isCarouselOpen = false;
+    updateCarousel();
+    document.removeEventListener('keydown', preventArrowScroll);
+  }
+
+  function preventArrowScroll(e) {
+    if (isCarouselOpen && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+      e.preventDefault();
     }
+  }
 
-    function updateCarousel() {
-        const event = new CustomEvent('updateCarousel', { 
-            detail: { isOpen: isCarouselOpen, index: currentIndex } 
-        });
-        window.dispatchEvent(event);
-    }
-
-    // Add click listeners to images
-    document.addEventListener('DOMContentLoaded', () => {
-        const imageGrid = document.getElementById('image-grid');
-        if (imageGrid) {
-            imageGrid.addEventListener('click', (e) => {
-                if (e.target instanceof HTMLImageElement) {
-                    const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
-                    openCarousel(index);
-                }
-            });
-        }
+  function updateCarousel() {
+    const event = new CustomEvent('updateCarousel', { 
+      detail: { 
+        isOpen: isCarouselOpen, 
+        index: currentIndex,
+        category: currentCategory,
+        projectTitle: currentProjectTitle
+      } 
     });
+    window.dispatchEvent(event);
+  }
 
-    // Listen for close events from the carousel
-    window.addEventListener('closeCarousel', closeCarousel);
-
-    // Add horizontal scrolling with mouse wheel
-    document.addEventListener('DOMContentLoaded', () => {
-        const imageGrid = document.getElementById('image-grid');
-        if (imageGrid) {
-            imageGrid.addEventListener('wheel', (e) => {
-                if (e.deltaY !== 0) {
-                    e.preventDefault();
-                    imageGrid.scrollLeft += e.deltaY;
-                }
-            });
+  document.addEventListener('DOMContentLoaded', () => {
+    const imageGrid = document.getElementById('image-grid');
+    if (imageGrid) {
+      imageGrid.addEventListener('click', (e) => {
+        if (e.target instanceof HTMLImageElement) {
+          const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
+          const category = e.target.getAttribute('data-category') || '';
+          const projectTitle = e.target.getAttribute('data-project-title') || '';
+          openCarousel(index, category, projectTitle);
         }
-    });
+      });
+
+      imageGrid.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          imageGrid.scrollLeft += e.deltaY;
+        }
+      });
+    }
+  });
+
+  window.addEventListener('closeCarousel', closeCarousel);
 </script>
