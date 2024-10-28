@@ -22,6 +22,20 @@ export const documentation = defineType({
       of: [
         {
           type: "image",
+          fields: [
+            defineField({
+              name: "isFavorite",
+              type: "boolean",
+              title: "Favorite",
+              initialValue: false,
+            }),
+            defineField({
+              name: "isPortrait",
+              type: "boolean",
+              title: "Portrait",
+              initialValue: false,
+            }),
+          ]
         }
       ],
       options: {

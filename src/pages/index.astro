@@ -17,16 +17,69 @@ interface Image {
 }
 
 const query = `
-*[_type == "projects"]{
-  title,
-  "favoriteImages": projectImages[isFavorite == true].asset->url
+{
+  "projects": *[_type == "projects"]{
+    title,
+    "favoriteImages": projectImages[isFavorite == true].asset->url
+  },
+  "documentation": *[_type == "documentation"]{
+    title,
+    "favoriteImages": documentationImages[isFavorite == true].asset->url
+  },
+  "fashion": *[_type == "fashion"]{
+    title,
+    "favoriteImages": fashionImages[isFavorite == true].asset->url
+  },
+  "portraits": *[_type == "portraits"]{
+    title,
+    "favoriteImages": portraitsImages[isFavorite == true].asset->url
+  },
+  "random": *[_type == "random"]{
+    title,
+    "favoriteImages": randomImages[isFavorite == true].asset->url
+  }
 }
 `;
-const { data: projects } = await loadQuery<Project[]>({ query });
 
-const favoriteImages: Image[] = projects.flatMap(project => 
-  project.favoriteImages.map(url => ({ title: project.title, url }))
-);
+const { data } = await loadQuery<{
+  projects: Project[];
+  documentation: Project[];
+  fashion: Project[];
+  portraits: Project[];
+  random: Project[];
+}>({ query });
+
+// Combine all favorite images into a single array
+const unfilteredFavoriteImages: Image[] = [
+  ...data.projects.flatMap(doc => 
+    doc.favoriteImages.map(url => ({ title: doc.title, url }))
+  ),
+  ...data.documentation.flatMap(doc => 
+    doc.favoriteImages.map(url => ({ title: doc.title, url }))
+  ),
+  ...data.fashion.flatMap(doc => 
+    doc.favoriteImages.map(url => ({ title: doc.title, url }))
+  ),
+  ...data.portraits.flatMap(doc => 
+    doc.favoriteImages.map(url => ({ title: doc.title, url }))
+  ),
+  ...data.random.flatMap(doc => 
+    doc.favoriteImages.map(url => ({ title: doc.title, url }))
+  )
+];
+
+// Fisher-Yates shuffle algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// Create shuffled version of the favorites array
+const favoriteImages = shuffleArray(unfilteredFavoriteImages);
 ---
 
 <Layout title="Lily Ballif">
