@@ -1,40 +1,74 @@
 import React, { useState, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
 
-const ImageCarousel = ({ 
-  images, 
-  categoryImages = null // Make categoryImages optional
-}) => {
+const ImageCarousel = ({ images, categoryImages = null }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayImages, setDisplayImages] = useState([]);
+  const [preloadedImages, setPreloadedImages] = useState(new Set());
+
+  // Preload adjacent images
+  const preloadImages = (currentIdx) => {
+    if (!displayImages.length) return;
+    
+    const imagesToPreload = [];
+    const prev = (currentIdx - 1 + displayImages.length) % displayImages.length;
+    const next = (currentIdx + 1) % displayImages.length;
+    
+    [prev, next].forEach(idx => {
+      const imageUrl = displayImages[idx]?.url;
+      if (imageUrl && !preloadedImages.has(imageUrl)) {
+        imagesToPreload.push(imageUrl);
+      }
+    });
+
+    if (imagesToPreload.length) {
+      imagesToPreload.forEach(url => {
+        const img = new Image();
+        img.src = url;
+        setPreloadedImages(prev => new Set([...prev, url]));
+      });
+    }
+  };
 
   useEffect(() => {
     const handleUpdate = (event) => {
       const { isOpen, index, category, projectTitle } = event.detail;
       setIsOpen(isOpen);
       
-      // If we have categoryImages (homepage), use project-specific images
       if (categoryImages && category && projectTitle) {
         const projectImages = categoryImages[category]?.filter(
           img => img.projectTitle === projectTitle
         ) || [];
         setDisplayImages(projectImages);
         
-        // Find the index of the clicked image in the project images
         const clickedImage = images[index];
         const newIndex = projectImages.findIndex(img => img.url === clickedImage.url);
         setCurrentIndex(Math.max(0, newIndex));
+        
+        // Preload all project images immediately
+        projectImages.forEach(img => {
+          if (!preloadedImages.has(img.url)) {
+            const image = new Image();
+            image.src = img.url;
+            setPreloadedImages(prev => new Set([...prev, img.url]));
+          }
+        });
       } else {
-        // For project pages, use all images passed directly
         setDisplayImages(images);
         setCurrentIndex(index);
+        // Preload adjacent images for direct image array
+        preloadImages(index);
       }
     };
 
     window.addEventListener("updateCarousel", handleUpdate);
     return () => window.removeEventListener("updateCarousel", handleUpdate);
-  }, [images, categoryImages]);
+  }, [images, categoryImages, preloadedImages]);
+
+  useEffect(() => {
+    preloadImages(currentIndex);
+  }, [currentIndex, displayImages]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -74,6 +108,7 @@ const ImageCarousel = ({
   const handleClose = () => {
     window.dispatchEvent(new CustomEvent("closeCarousel"));
     setDisplayImages([]);
+    setPreloadedImages(new Set());
   };
 
   const handleImageClick = (e) => {
@@ -105,19 +140,19 @@ const ImageCarousel = ({
   return (
     <>
       <div 
-        className="absolute bg-white/90 h-svh w-svw z-10"
+        className="fixed bg-white/90 h-svh w-svw z-10"
         onClick={handleClose}
       />
       
-      <div className="absolute h-svh w-svw flex flex-col z-20 pointer-events-none">
-        <div className="flex justify-between px-[20px] pt-[20px] bg-white pointer-events-auto">
-          <div className="flex gap-[0.5rem]">
+      <div className="fixed h-svh w-svw flex flex-col z-20 pointer-events-none">
+        <div className="flex justify-between px-5 pt-5 bg-white pointer-events-auto">
+          <div className="flex gap-2">
             <div className="sm:hidden">
               {currentIndex + 1} of {displayImages.length}
             </div>
-            <div className="hidden sm:flex gap-[0.5rem]">
+            <div className="hidden sm:flex gap-2">
               <button onClick={handlePrev}>Previous</button>
-              <p> / </p>
+              <p>/</p>
               <button onClick={handleNext}>Next</button>
             </div>
           </div>
@@ -130,10 +165,27 @@ const ImageCarousel = ({
               src={currentImage.url} 
               alt={currentImage.title} 
               onClick={handleImageClick}
+              loading="eager"
+              fetchPriority="high"
               className="w-[92svw] max-h-[90svh] object-contain md:max-w-[96svw] md:w-auto md:h-[90svh]" 
             />
           </div>
         </div>
+      </div>
+      
+      {/* Hidden preload container */}
+      <div className="hidden">
+        {displayImages.map((img, idx) => (
+          idx !== currentIndex && (
+            <img 
+              key={img.url} 
+              src={img.url} 
+              alt="" 
+              aria-hidden="true"
+              loading="lazy"
+            />
+          )
+        ))}
       </div>
     </>
   );
