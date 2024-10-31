@@ -24,6 +24,12 @@ export const portraits = defineType({
           type: "image",
           fields: [
             defineField({
+              name: "title",
+              type: "string",
+              title: "Image Title",
+              validation: Rule => Rule.required(),
+            }),
+            defineField({
               name: "isFavorite",
               type: "boolean",
               title: "Favorite",
@@ -40,7 +46,7 @@ export const portraits = defineType({
       ],
       options: {
         layout: 'grid',
-        }
+      }
     }),
   ],
 });

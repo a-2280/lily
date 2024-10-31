@@ -24,6 +24,12 @@ export const random = defineType({
           type: "image",
           fields: [
             defineField({
+              name: "title",
+              type: "string",
+              title: "Image Title",
+              validation: Rule => Rule.required(),
+            }),
+            defineField({
               name: "isFavorite",
               type: "boolean",
               title: "Favorite",

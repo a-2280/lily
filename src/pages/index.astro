@@ -6,10 +6,63 @@ import '../styles/global.css';
 import { Image } from 'astro:assets';
 import { loadQuery } from "../sanity/lib/load-query";
 
+interface ImageWithTitle {
+  url: string;
+  imageTitle: string;
+}
+
 interface Project {
   title: string;
   favoriteImages: string[];
   allImages: string[];
+}
+
+interface DocumentationProject {
+  title: string;
+  favoriteImages: Array<{
+    url: string;
+    imageTitle: string;
+  }>;
+  allImages: Array<{
+    url: string;
+    imageTitle: string;
+  }>;
+}
+
+interface FashionProject {
+  title: string;
+  favoriteImages: Array<{
+    url: string;
+    imageTitle: string;
+  }>;
+  allImages: Array<{
+    url: string;
+    imageTitle: string;
+  }>;
+}
+
+interface PortraitProject {
+  title: string;
+  favoriteImages: Array<{
+    url: string;
+    imageTitle: string;
+  }>;
+  allImages: Array<{
+    url: string;
+    imageTitle: string;
+  }>;
+}
+
+interface RandomProject {
+  title: string;
+  favoriteImages: Array<{
+    url: string;
+    imageTitle: string;
+  }>;
+  allImages: Array<{
+    url: string;
+    imageTitle: string;
+  }>;
 }
 
 interface Image {
@@ -28,52 +81,93 @@ const query = `
   },
   "documentation": *[_type == "documentation"]{
     title,
-    "favoriteImages": documentationImages[isFavorite == true].asset->url,
-    "allImages": coalesce(documentationImages[].asset->url, [])
+    "favoriteImages": documentationImages[isFavorite == true]{
+      "url": asset->url,
+      "imageTitle": title
+    },
+    "allImages": coalesce(documentationImages[]{
+      "url": asset->url,
+      "imageTitle": title
+    }, [])
   },
   "fashion": *[_type == "fashion"]{
     title,
-    "favoriteImages": fashionImages[isFavorite == true].asset->url,
-    "allImages": coalesce(fashionImages[].asset->url, [])
+    "favoriteImages": fashionImages[isFavorite == true]{
+      "url": asset->url,
+      "imageTitle": title
+    },
+    "allImages": coalesce(fashionImages[]{
+      "url": asset->url,
+      "imageTitle": title
+    }, [])
   },
   "portraits": *[_type == "portraits"]{
     title,
-    "favoriteImages": portraitsImages[isFavorite == true].asset->url,
-    "allImages": coalesce(portraitsImages[].asset->url, [])
+    "favoriteImages": portraitsImages[isFavorite == true]{
+      "url": asset->url,
+      "imageTitle": title
+    },
+    "allImages": coalesce(portraitsImages[]{
+      "url": asset->url,
+      "imageTitle": title
+    }, [])
   },
   "random": *[_type == "random"]{
     title,
-    "favoriteImages": randomImages[isFavorite == true].asset->url,
-    "allImages": coalesce(randomImages[].asset->url, [])
+    "favoriteImages": randomImages[isFavorite == true]{
+      "url": asset->url,
+      "imageTitle": title
+    },
+    "allImages": coalesce(randomImages[]{
+      "url": asset->url,
+      "imageTitle": title
+    }, [])
   }
 }
 `;
 
 const { data } = await loadQuery<{
   projects: Project[];
-  documentation: Project[];
-  fashion: Project[];
-  portraits: Project[];
-  random: Project[];
+  documentation: DocumentationProject[];
+  fashion: FashionProject[];
+  portraits: PortraitProject[];
+  random: RandomProject[];
 }>({ query });
 
 const categoryImages = new Map<string, Image[]>();
 
-function processCategory(category: string, projects: Project[]) {
+function processCategory(category: string, projects: Project[] | DocumentationProject[] | FashionProject[] | PortraitProject[] | RandomProject[]) {
   const images: Image[] = [];
   if (projects && Array.isArray(projects)) {
     projects.forEach(project => {
-      if (project.allImages && Array.isArray(project.allImages)) {
-        project.allImages.forEach(url => {
-          if (url) {
-            images.push({
-              title: project.title,
-              url,
-              category,
-              projectTitle: project.title
-            });
-          }
-        });
+      if (['documentation', 'portraits', 'random', 'fashion'].includes(category)) {
+        const projectWithTitles = project as DocumentationProject | FashionProject | PortraitProject | RandomProject;
+        if (projectWithTitles.allImages && Array.isArray(projectWithTitles.allImages)) {
+          projectWithTitles.allImages.forEach(image => {
+            if (image.url) {
+              images.push({
+                title: image.imageTitle || project.title,
+                url: image.url,
+                category,
+                projectTitle: project.title
+              });
+            }
+          });
+        }
+      } else {
+        const standardProject = project as Project;
+        if (standardProject.allImages && Array.isArray(standardProject.allImages)) {
+          standardProject.allImages.forEach(url => {
+            if (url) {
+              images.push({
+                title: project.title,
+                url,
+                category,
+                projectTitle: project.title
+              });
+            }
+          });
+        }
       }
     });
   }
@@ -98,33 +192,33 @@ const unfilteredFavoriteImages: Image[] = [
     }))
   ),
   ...(data.documentation || []).flatMap(doc => 
-    (doc.favoriteImages || []).map(url => ({ 
-      title: doc.title, 
-      url, 
+    (doc.favoriteImages || []).map(image => ({ 
+      title: image.imageTitle || doc.title,
+      url: image.url,
       category: 'documentation',
       projectTitle: doc.title 
     }))
   ),
   ...(data.fashion || []).flatMap(doc => 
-    (doc.favoriteImages || []).map(url => ({ 
-      title: doc.title, 
-      url, 
+    (doc.favoriteImages || []).map(image => ({ 
+      title: image.imageTitle || doc.title,
+      url: image.url,
       category: 'fashion',
       projectTitle: doc.title 
     }))
   ),
   ...(data.portraits || []).flatMap(doc => 
-    (doc.favoriteImages || []).map(url => ({ 
-      title: doc.title, 
-      url, 
+    (doc.favoriteImages || []).map(image => ({ 
+      title: image.imageTitle || doc.title,
+      url: image.url,
       category: 'portraits',
       projectTitle: doc.title 
     }))
   ),
   ...(data.random || []).flatMap(doc => 
-    (doc.favoriteImages || []).map(url => ({ 
-      title: doc.title, 
-      url, 
+    (doc.favoriteImages || []).map(image => ({ 
+      title: image.imageTitle || doc.title,
+      url: image.url,
       category: 'random',
       projectTitle: doc.title 
     }))
@@ -157,7 +251,7 @@ const favoriteImages = shuffleArray(unfilteredFavoriteImages);
           data-index={index}
           data-category={image.category}
           data-project-title={image.projectTitle}
-          loading={index < 5 ? "eager" : "lazy"}
+          loading="eager"
           format="webp"
           quality={80}
         />
