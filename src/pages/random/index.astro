@@ -65,7 +65,7 @@ const randomImages: ImageWithDimensions[] = random?.randomImages?.map((image, in
               height={image.height}
               class="h-[55svh] md:h-[60svh] w-auto pr-[10px] cursor-pointer hover-shrink object-contain" 
               data-index={index}
-              loading={index < 3 ? "eager" : "lazy"}
+              loading="eager"
             />
           ))}
         </div>

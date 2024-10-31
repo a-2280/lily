@@ -67,7 +67,7 @@ const images = project.projectImages.map((image, index) => ({
             height={image.asset.metadata.dimensions.height}
             class="h-[55svh] md:h-[60svh] pr-[10px] cursor-pointer hover-shrink object-contain"
             data-index={index}
-            loading={index < 3 ? "eager" : "lazy"}
+            loading="eager"
           />
         ))}
       </div>
