@@ -31,7 +31,7 @@ export default function Navbar() {
     return(
         <div>
             <nav className="z-10 w-swh">
-                <div className="flex justify-between px-[20px] md:pt-[20px]">
+                <div className="flex justify-between px-[20px] pt-[10px] md:pt-[20px]">
                     <a href="/" className='secondary-color'>Lily Ballif<span className={menuOpen ? "hidden" : "hidden md:inline md:text-[#808080]"}> is a photographer based in Utah, USA. </span></a>
                     <button onClick={toggleMenu} className="text-[#808080]">{menuOpen ? 'Collapse' : 'Menu'}</button>
                 </div>

@@ -145,7 +145,7 @@ const ImageCarousel = ({ images, categoryImages = null }) => {
       />
       
       <div className="fixed h-svh w-svw flex flex-col z-20 pointer-events-none">
-        <div className="fixed w-svw flex justify-between px-5 md:pt-5 pointer-events-auto bg-white">
+        <div className="fixed w-svw flex justify-between px-5 pt-[10px] md:pt-5 pointer-events-auto bg-white">
           <div className="flex gap-2">
             <div className="sm:hidden">
               {currentIndex + 1} of {displayImages.length}
