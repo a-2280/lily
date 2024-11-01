@@ -145,18 +145,18 @@ const ImageCarousel = ({ images, categoryImages = null }) => {
       />
       
       <div className="fixed h-svh w-svw flex flex-col z-20 pointer-events-none">
-        <div className="flex justify-between px-5 pt-5 bg-white pointer-events-auto">
+        <div className="fixed w-svw flex justify-between px-5 md:pt-5 pointer-events-auto bg-white">
           <div className="flex gap-2">
             <div className="sm:hidden">
               {currentIndex + 1} of {displayImages.length}
             </div>
-            <div className="hidden sm:flex gap-2">
+            <div className="hidden sm:flex gap-2 bg-white">
               <button onClick={handlePrev}>Previous</button>
               <p>/</p>
               <button onClick={handleNext}>Next</button>
             </div>
           </div>
-          <button onClick={handleClose}>Close</button>
+          <button onClick={handleClose} className="bg-white">Close</button>
         </div>
         
         <div className="flex-1 flex justify-center items-center" {...handlers}>

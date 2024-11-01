@@ -80,3 +80,6 @@ button {
   cursor: pointer;
   outline: inherit;
 }
+html{
+  color: #808080;
+}
