@@ -56,15 +56,17 @@ const fashionImages: ImageWithDimensions[] = fashion.fashionImages.map((image, i
   <div class="pb-[20px]">
     <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px]">
       {fashionImages.map((image, index) => (
-        <Image 
-          src={image.url}
-          alt={image.title}
-          width={image.width}
-          height={image.height}
-          class="h-[55svh] md:h-[60svh] w-auto pr-[10px] cursor-pointer hover-shrink object-contain" 
-          data-index={index}
-          loading="eager"
-        />
+        <div class="h-[55svh] md:h-[60svh] flex-shrink-0 pr-[10px]">
+          <Image 
+            src={image.url}
+            alt={image.title}
+            width={image.width}
+            height={image.height}
+            class="h-full w-auto cursor-pointer hover-shrink object-contain" 
+            data-index={index}
+            loading="eager"
+          />
+        </div>
       ))}
     </div>
     <p class="pl-[20px] pt-[10px] leading-none">{fashion.title}</p>
