@@ -59,7 +59,7 @@ export default function Navbar() {
                             <li className="cursor-pointer w-max"><a href={'https://www.instagram.com/lily.ballif'} target="_blank" className="hover:text-black">Instagram</a></li>
                         </ul>
                     </div>
-                    <div className="bg-white h-[75px] md:h-[20px]"></div>
+                    <div className="bg-white h-[20px]"></div>
                 </div>
             </nav>
             {menuOpen && (
