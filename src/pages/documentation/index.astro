@@ -30,7 +30,7 @@ interface ImageWithDimensions {
   height: number;
 }
 
-const { data } = await loadQuery<{ result: Documentation }>({
+const { data: documentation } = await loadQuery<Documentation>({
   query: `*[_type == "documentation"][0]{
     title,
     "documentationImages": documentationImages[]{
@@ -48,14 +48,12 @@ const { data } = await loadQuery<{ result: Documentation }>({
   }`
 });
 
-const documentation = data;
-
-const documentationImages: ImageWithDimensions[] = documentation.documentationImages.map((image) => ({
+const documentationImages: ImageWithDimensions[] = documentation?.documentationImages?.map((image) => ({
   title: image.title,
   url: image.asset.url,
   width: image.asset.metadata.dimensions.width,
   height: image.asset.metadata.dimensions.height
-}));
+})) || [];
 ---
 
 <!-- Rest of the template remains the same -->
