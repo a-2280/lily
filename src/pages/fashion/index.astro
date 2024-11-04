@@ -10,11 +10,16 @@ import { loadQuery } from "../../sanity/lib/load-query";
 interface Fashion {
   title: string;
   fashionImages: {
-    url: string;
-    metadata: {
-      dimensions: {
-        width: number;
-        height: number;
+    title: string;
+    isFavorite: boolean;
+    isPortrait: boolean;
+    asset: {
+      url: string;
+      metadata: {
+        dimensions: {
+          width: number;
+          height: number;
+        };
       };
     };
   }[];
@@ -25,17 +30,24 @@ interface ImageWithDimensions {
   url: string;
   width: number;
   height: number;
+  isFavorite: boolean;
+  isPortrait: boolean;
 }
 
 const query = `
 *[_type == "fashion"][0]{
   title,
-  "fashionImages": fashionImages[].asset->{
-    "url": url,
-    metadata {
-      dimensions {
-        width,
-        height
+  "fashionImages": fashionImages[]{
+    title,
+    isFavorite,
+    isPortrait,
+    "asset": asset->{
+      "url": url,
+      metadata {
+        dimensions {
+          width,
+          height
+        }
       }
     }
   }
@@ -43,33 +55,43 @@ const query = `
 `;
 const { data: fashion } = await loadQuery<Fashion>({ query });
 
-const fashionImages: ImageWithDimensions[] = fashion.fashionImages.map((image, index) => ({
-  title: `${fashion.title} - Image ${index + 1}`,
-  url: image.url,
-  width: image.metadata.dimensions.width,
-  height: image.metadata.dimensions.height
+const fashionImages: ImageWithDimensions[] = fashion.fashionImages.map((image) => ({
+  title: image.title, // Use the actual image title from Sanity
+  url: image.asset.url,
+  width: image.asset.metadata.dimensions.width,
+  height: image.asset.metadata.dimensions.height,
+  isFavorite: image.isFavorite,
+  isPortrait: image.isPortrait
 }));
 ---
 
 <Layout title={`Lily Ballif - ${fashion.title}`}>
   <Navbar client:load />
-  <div class="pb-[20px]">
+  <div class="pb-[10px]">
     <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px]">
       {fashionImages.map((image, index) => (
-        <div class="h-[55svh] md:h-[60svh] flex-shrink-0 pr-[10px]">
+        <div class="flex-shrink-0 relative">
           <Image 
             src={image.url}
             alt={image.title}
             width={image.width}
             height={image.height}
-            class="h-full w-auto cursor-pointer hover-shrink object-contain" 
+            class={`h-[55svh] md:h-[60svh] w-auto cursor-pointer hover-shrink object-contain pr-[10px] pb-[36px] ${
+              image.isPortrait ? 'object-contain' : 'object-cover'
+            }`}
             data-index={index}
+            data-title={image.title}
             loading="eager"
           />
+          <div class="preview-title absolute bottom-[11px] left-0 pr-[10px] opacity-0 transition-opacity duration-300 pointer-events-none" data-preview-for={index}>
+            <p class="leading-none text-[#808080]">{image.title}</p>
+          </div>
         </div>
       ))}
     </div>
-    <p class="pl-[20px] pt-[10px] leading-none">{fashion.title}</p>
+  </div>
+  <div id="sticky-title" class="fixed bottom-[20px] left-[20px] leading-none opacity-0 transition-opacity duration-300">
+    <p></p>
   </div>
   <ImageCarousel client:load images={fashionImages} />
 </Layout>
@@ -85,69 +107,157 @@ const fashionImages: ImageWithDimensions[] = fashion.fashionImages.map((image, i
   .hover-shrink {
     transition: transform 0.3s ease;
   }
-  /* Only apply hover effect when menu is closed */
   body:not(.menu-open) .hover-shrink:hover {
     transform: scale(0.975);
+  }
+  .preview-title {
+    color: #000;
   }
 </style>
 
 <script is:inline>
-    let isCarouselOpen = false;
-    let currentIndex = 0;
+  let isCarouselOpen = false;
+  let currentIndex = 0;
+  let lastLeftmostTitle = null;
   
-    // Listen for menu state changes
-    window.addEventListener('menuStateChanged', (e) => {
-      if (e.detail.isOpen) {
-        document.body.classList.add('menu-open');
-      } else {
-        document.body.classList.remove('menu-open');
+  window.addEventListener('menuStateChanged', (e) => {
+    if (e.detail.isOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
+  });
+
+  function preventArrowScroll(e) {
+    if (isCarouselOpen && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+      e.preventDefault();
+    }
+  }
+
+  function openCarousel(index) {
+    isCarouselOpen = true;
+    currentIndex = index;
+    updateCarousel();
+    document.addEventListener('keydown', preventArrowScroll);
+  }
+
+  function closeCarousel() {
+    isCarouselOpen = false;
+    updateCarousel();
+    document.removeEventListener('keydown', preventArrowScroll);
+  }
+
+  function updateCarousel() {
+    const event = new CustomEvent('updateCarousel', { 
+      detail: { isOpen: isCarouselOpen, index: currentIndex } 
+    });
+    window.dispatchEvent(event);
+  }
+
+  function updateStickyTitle(title) {
+    if (title === lastLeftmostTitle) return;
+    lastLeftmostTitle = title;
+    
+    const titleElement = document.getElementById('sticky-title');
+    if (titleElement) {
+      const titleText = titleElement.querySelector('p');
+      if (titleText) {
+        titleText.textContent = title;
+        titleElement.style.opacity = '1';
+      }
+    }
+  }
+
+  function updatePreviewTitles(leftmostTitle) {
+    const imageGrid = document.getElementById('image-grid');
+    if (!imageGrid) return;
+
+    const gridRect = imageGrid.getBoundingClientRect();
+    const images = Array.from(imageGrid.getElementsByTagName('img'));
+    
+    // Keep track of which titles we've already shown
+    const shownTitles = new Set();
+    
+    images.forEach(img => {
+      const rect = img.getBoundingClientRect();
+      const title = img.getAttribute('data-title');
+      const index = img.getAttribute('data-index');
+      const previewElement = document.querySelector(`[data-preview-for="${index}"]`);
+      
+      if (previewElement && title && rect.right > gridRect.left && rect.left < gridRect.right) {
+        // Calculate visibility ratio
+        const visibleWidth = Math.min(rect.right, gridRect.right) - Math.max(rect.left, gridRect.left);
+        const visibilityRatio = visibleWidth / rect.width;
+        
+        // Show preview title if:
+        // 1. Image is at least 30% visible
+        // 2. Its title is different from the current sticky title
+        // 3. We haven't shown this title yet in the visible area
+        if (visibilityRatio > 0.3 && title !== leftmostTitle && !shownTitles.has(title)) {
+          previewElement.style.opacity = '1';
+          shownTitles.add(title);
+        } else {
+          previewElement.style.opacity = '0';
+        }
+      }
+    });
+  }
+
+  function findLeftmostVisibleImage() {
+    const imageGrid = document.getElementById('image-grid');
+    if (!imageGrid) return;
+
+    const gridRect = imageGrid.getBoundingClientRect();
+    const images = Array.from(imageGrid.getElementsByTagName('img'));
+    
+    let leftmostImage = null;
+    let minDistance = Infinity;
+
+    images.forEach(img => {
+      const rect = img.getBoundingClientRect();
+      if (rect.right > gridRect.left && rect.left < gridRect.right) {
+        const distance = rect.left - gridRect.left;
+        if (distance < minDistance && distance >= -rect.width / 2) {
+          minDistance = distance;
+          leftmostImage = img;
+        }
       }
     });
 
-    function preventArrowScroll(e) {
-      if (isCarouselOpen && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-        e.preventDefault();
+    if (leftmostImage) {
+      const title = leftmostImage.getAttribute('data-title');
+      if (title) {
+        updateStickyTitle(title);
+        updatePreviewTitles(title);
       }
     }
-  
-    function openCarousel(index) {
-      isCarouselOpen = true;
-      currentIndex = index;
-      updateCarousel();
-      document.addEventListener('keydown', preventArrowScroll);
-    }
-  
-    function closeCarousel() {
-      isCarouselOpen = false;
-      updateCarousel();
-      document.removeEventListener('keydown', preventArrowScroll);
-    }
-  
-    function updateCarousel() {
-      const event = new CustomEvent('updateCarousel', { 
-        detail: { isOpen: isCarouselOpen, index: currentIndex } 
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const imageGrid = document.getElementById('image-grid');
+    
+    if (imageGrid) {
+      findLeftmostVisibleImage();
+
+      imageGrid.addEventListener('scroll', () => {
+        requestAnimationFrame(findLeftmostVisibleImage);
       });
-      window.dispatchEvent(event);
+
+      imageGrid.addEventListener('click', (e) => {
+        if (e.target instanceof HTMLImageElement) {
+          const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
+          openCarousel(index);
+        }
+      });
+
+      imageGrid.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          imageGrid.scrollLeft += e.deltaY;
+        }
+      });
     }
-  
-    document.addEventListener('DOMContentLoaded', () => {
-      const imageGrid = document.getElementById('image-grid');
-      if (imageGrid) {
-        imageGrid.addEventListener('click', (e) => {
-          if (e.target instanceof HTMLImageElement) {
-            const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
-            openCarousel(index);
-          }
-        });
-  
-        imageGrid.addEventListener('wheel', (e) => {
-          if (e.deltaY !== 0) {
-            e.preventDefault();
-            imageGrid.scrollLeft += e.deltaY;
-          }
-        });
-      }
-    });
-  
-    window.addEventListener('closeCarousel', closeCarousel);
+  });
+
+  window.addEventListener('closeCarousel', closeCarousel);
 </script>
