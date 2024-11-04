@@ -4,35 +4,38 @@ import { Image } from 'astro:assets';
 import Navbar from '../../components/Navbar';
 import ImageCarousel from '../../components/ImageCarousel';
 import '../../styles/global.css';
-
 import { loadQuery } from "../../sanity/lib/load-query";
 
 interface Random {
   title: string;
-  randomImages: {
+  randomImages: Array<{
     url: string;
+    imageTitle: string;
     metadata: {
       dimensions: {
         width: number;
         height: number;
       };
     };
-  }[];
+  }>;
 }
 
-interface ImageWithDimensions {
+interface ImageWithDetails {
   title: string;
   url: string;
   width: number;
   height: number;
+  category: string;
+  projectTitle: string;
 }
 
 const query = `
 *[_type == "random"][0]{
   title,
-  "randomImages": randomImages[].asset->{
-    "url": url,
-    metadata {
+  "randomImages": randomImages[]{
+    "url": asset->url,
+    "imageTitle": title,
+    "metadata": asset->metadata {
       dimensions {
         width,
         height
@@ -41,43 +44,63 @@ const query = `
   }
 }
 `;
+
 const { data: random } = await loadQuery<Random>({ query });
 
-const randomImages: ImageWithDimensions[] = random?.randomImages?.map((image, index) => ({
-  title: `${random.title} - Image ${index + 1}`,
+const randomImages: ImageWithDetails[] = random?.randomImages?.map(image => ({
+  title: image.imageTitle || random.title,
   url: image.url,
   width: image.metadata.dimensions.width,
-  height: image.metadata.dimensions.height
+  height: image.metadata.dimensions.height,
+  category: 'random',
+  projectTitle: random.title
 })) || [];
+
+// Function to determine if we should show the title
+function shouldShowTitle(images: ImageWithDetails[], currentIndex: number): boolean {
+  if (currentIndex === 0) return true;
+  const currentTitle = images[currentIndex].title;
+  const previousTitle = images[currentIndex - 1].title;
+  return currentTitle !== previousTitle;
+}
 ---
 
 <Layout title={random?.title || 'Random'}>
   <Navbar client:load />
   <div class="pb-[20px]">
     {randomImages.length > 0 ? (
-      <>
-        <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px]">
-          {randomImages.map((image, index) => (
-            <div class="h-[55svh] md:h-[60svh] flex-shrink-0 pr-[10px]">
-              <Image 
-                src={image.url}
-                alt={image.title}
-                width={image.width}
-                height={image.height}
-                class="h-full w-auto cursor-pointer hover-shrink object-contain" 
-                data-index={index}
-                loading="eager"
-              />
-            </div>
-          ))}
-        </div>
-        <p class="pl-[20px] pt-[10px] leading-none">{random?.title}</p>
-      </>
+      <div id="image-grid" class="flex overflow-x-scroll no-scroll-bar pl-[20px]">
+        {randomImages.map((image, index) => (
+          <div class="flex-shrink-0">
+            <Image 
+              src={image.url}
+              alt={image.title}
+              width={image.width}
+              height={image.height}
+              class="h-[55svh] md:h-[60svh] w-auto pr-[10px] cursor-pointer hover-shrink"
+              data-index={index}
+              data-category={image.category}
+              data-project-title={image.projectTitle}
+              loading="eager"
+              format="webp"
+              quality={80}
+            />
+            {shouldShowTitle(randomImages, index) && 
+              <p class="pt-[10px] leading-none">{image.title}</p>
+            }
+          </div>
+        ))}
+      </div>
     ) : (
       <p class="pl-[20px]">No random images available yet.</p>
     )}
   </div>
-  {randomImages.length > 0 && <ImageCarousel client:load images={randomImages} />}
+  {randomImages.length > 0 && 
+    <ImageCarousel 
+      client:load 
+      images={randomImages}
+    />
+  }
 </Layout>
 
 <style>
@@ -98,62 +121,73 @@ const randomImages: ImageWithDimensions[] = random?.randomImages?.map((image, in
 </style>
 
 <script is:inline>
-    let isCarouselOpen = false;
-    let currentIndex = 0;
-  
-    // Listen for menu state changes
-    window.addEventListener('menuStateChanged', (e) => {
-      if (e.detail.isOpen) {
-        document.body.classList.add('menu-open');
-      } else {
-        document.body.classList.remove('menu-open');
-      }
-    });
+  let isCarouselOpen = false;
+  let currentIndex = 0;
+  let currentCategory = '';
+  let currentProjectTitle = '';
 
-    function preventArrowScroll(e) {
-      if (isCarouselOpen && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-        e.preventDefault();
-      }
+  // Listen for menu state changes
+  window.addEventListener('menuStateChanged', (e) => {
+    if (e.detail.isOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
     }
-  
-    function openCarousel(index) {
-      isCarouselOpen = true;
-      currentIndex = index;
-      updateCarousel();
-      document.addEventListener('keydown', preventArrowScroll);
+  });
+
+  function openCarousel(index, category, projectTitle) {
+    isCarouselOpen = true;
+    currentIndex = index;
+    currentCategory = category;
+    currentProjectTitle = projectTitle;
+    updateCarousel();
+    document.addEventListener('keydown', preventArrowScroll);
+  }
+
+  function closeCarousel() {
+    isCarouselOpen = false;
+    updateCarousel();
+    document.removeEventListener('keydown', preventArrowScroll);
+  }
+
+  function preventArrowScroll(e) {
+    if (isCarouselOpen && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+      e.preventDefault();
     }
-  
-    function closeCarousel() {
-      isCarouselOpen = false;
-      updateCarousel();
-      document.removeEventListener('keydown', preventArrowScroll);
-    }
-  
-    function updateCarousel() {
-      const event = new CustomEvent('updateCarousel', { 
-        detail: { isOpen: isCarouselOpen, index: currentIndex } 
-      });
-      window.dispatchEvent(event);
-    }
-  
-    document.addEventListener('DOMContentLoaded', () => {
-      const imageGrid = document.getElementById('image-grid');
-      if (imageGrid) {
-        imageGrid.addEventListener('click', (e) => {
-          if (e.target instanceof HTMLImageElement) {
-            const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
-            openCarousel(index);
-          }
-        });
-  
-        imageGrid.addEventListener('wheel', (e) => {
-          if (e.deltaY !== 0) {
-            e.preventDefault();
-            imageGrid.scrollLeft += e.deltaY;
-          }
-        });
-      }
+  }
+
+  function updateCarousel() {
+    const event = new CustomEvent('updateCarousel', { 
+      detail: { 
+        isOpen: isCarouselOpen, 
+        index: currentIndex,
+        category: currentCategory,
+        projectTitle: currentProjectTitle
+      } 
     });
-  
-    window.addEventListener('closeCarousel', closeCarousel);
+    window.dispatchEvent(event);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const imageGrid = document.getElementById('image-grid');
+    if (imageGrid) {
+      imageGrid.addEventListener('click', (e) => {
+        if (e.target instanceof HTMLImageElement) {
+          const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
+          const category = e.target.getAttribute('data-category') || '';
+          const projectTitle = e.target.getAttribute('data-project-title') || '';
+          openCarousel(index, category, projectTitle);
+        }
+      });
+
+      imageGrid.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          imageGrid.scrollLeft += e.deltaY;
+        }
+      });
+    }
+  });
+
+  window.addEventListener('closeCarousel', closeCarousel);
 </script>
